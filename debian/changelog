@@ -1,0 +1,84 @@
+libpam-pwdfile (0.99-2) unstable; urgency=low
+
+  * Include contrib/warwick_duncan-cyrus_without_system_accounts.txt under
+    /usr/share/doc/libpam-pwdfile.
+
+ -- Greg Norris <adric@debian.org>  Mon, 22 Dec 2003 19:39:46 -0600
+
+libpam-pwdfile (0.99-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Greg Norris <adric@debian.org>  Sat, 20 Dec 2003 14:36:09 -0600
+
+libpam-pwdfile (0.98-4) unstable; urgency=low
+
+  * Complete yesterday's pam_pwdfile.c update, in which I inadvertently omitted
+    a one-line change.
+
+ -- Greg Norris <adric@debian.org>  Sat, 20 Dec 2003 13:53:24 -0600
+
+libpam-pwdfile (0.98-3) unstable; urgency=low
+
+  * Updated pam_pwdfile.c to distinguish between crypt and bigcrypt passwords,
+    and handle them appropriately.  The patch has been forwarded upstream, and
+    Charl has indicated that it will be incorporated into the next release.
+    (closes: 220770)
+
+ -- Greg Norris <adric@debian.org>  Fri, 19 Dec 2003 22:31:31 -0600
+
+libpam-pwdfile (0.98-2) unstable; urgency=low
+
+  * The previous upload failed because dpkg-buildpackage wanted to include
+    the source archive, but the existing file can't be overwritten.  Bump the
+    revision number, and re-upload.
+
+ -- Greg Norris <adric@debian.org>  Tue,  8 Jul 2003 21:17:49 -0500
+
+libpam-pwdfile (0.98-1) unstable; urgency=low
+
+  * Hijack this package, as the previous maintainer appears to have been
+    unreachable for quite some time.  Guess I should have done this in the
+    first place. ;-)
+  * Miscellaneous updates to packaging files.
+
+ -- Greg Norris <adric@debian.org>  Tue,  8 Jul 2003 18:10:15 -0500
+
+libpam-pwdfile (0.98-0.2) unstable; urgency=low
+
+  * NMU
+  * Build using -fPIC (closes: #200477)
+
+ -- Greg Norris <adric@debian.org>  Tue,  8 Jul 2003 10:21:52 -0500
+
+libpam-pwdfile (0.98-0.1) unstable; urgency=low
+
+  * NMU
+  * New upstream release.
+  * Updated to policy version 3.5.10 (no changes required), in order to make
+    lintian happy.
+  * Removed obsolete call to dh_suidregister from debian/rules.
+
+ -- Greg Norris <adric@debian.org>  Mon,  7 Jul 2003 20:20:12 -0500
+
+libpam-pwdfile (0.6-2) unstable; urgency=low
+
+  * Added debhelper to Build-Depends (Closes: Bug#77881).
+
+ -- Michael-John Turner <mj@debian.org>  Fri, 24 Nov 2000 21:41:43 +0200
+
+libpam-pwdfile (0.6-1) unstable; urgency=low
+
+  * New upstream.
+
+ -- Michael-John Turner <mj@debian.org>  Sat, 18 Nov 2000 21:24:03 +0200
+
+libpam-pwdfile (0.1-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Michael-John Turner <mj@debian.org>  Tue,  7 Dec 1999 12:02:43 +0200
+
+Local variables:
+mode: debian-changelog
+End:

@@ -1,0 +1,16 @@
+libpam-pwdfile for Debian
+-------------------------
+
+This module allows one to authenticate users using a passwd-like file.
+Creating this file currently means either copying the relevant entries from
+/etc/{passwd,shadow}, or using the chpwdfile utility (not yet packaged) from
+http://eclipse.che.uct.ac.za/chpwdfile/.
+
+Below is an example of a working /etc/pam.d/* configuration... specifically,
+this is copy of my /etc/pam.d/qpopper.  Please note that the "account" entry
+is required.
+
+   auth       required     pam_pwdfile.so pwdfile /etc/qpopper/qpopper.pwd
+   account    required     pam_unix_acct.so
+
+ -- Greg Norris <adric@debian.org>, Tue, 08 Jul 2003 18:57:16 -0500

@@ -1,0 +1,33 @@
+This package was debianized by Michael-John Turner <mj@debian.org> on
+Tue,  7 Dec 1999 12:02:43 +0200.  It is currently packaged by
+Greg Norris <adric@debian.org>.
+
+It was downloaded from http://cpbotha.net/pam_pwdfile.html
+
+Upstream Author: Charl P. Botha <cpbotha@ieee.org>
+
+Copyright:
+  Copyright (c) Charl P. Botha, 1999-2002. All rights reserved
+ 
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, and the entire permission notice in its entirety,
+     including the disclaimer of warranties.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+  3. The name of the author may not be used to endorse or promote
+     products derived from this software without specific prior
+     written permission.
+  
+  ALTERNATIVELY, this product may be distributed under the terms of
+  the GNU Public License, in which case the provisions of the GPL are
+  required INSTEAD OF the above restrictions.  (This clause is
+  necessary due to a potential bad interaction between the GPL and
+  the restrictions contained in a BSD-style copyright.)
+
+On Debian GNU systems, a copy of the GNU GPL can be found in
+/usr/share/common-licenses/GPL
+
