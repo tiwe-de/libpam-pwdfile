@@ -1,6 +1,10 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.5 2000-11-11 22:52:41 cpbotha Exp $
+$Id: changelog,v 1.6 2000-11-25 16:56:29 cpbotha Exp $
 ---------------------------------------------------------------------------
+
+0.7:
+
+* changed error message if user is not found in password file
 
 0.6: Sat Nov 11 23:51:32 CET 2000
 
