@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2002-05-11 14:42:35 cpbotha Exp $
+# $Id: Makefile,v 1.5 2002-06-09 21:01:46 cpbotha Exp $
 #
 # This Makefile controls a build process of $(TITLE) module for
 # Linux-PAM. You should not modify this Makefile (unless you know
@@ -6,6 +6,10 @@
 #
 
 include ../../Make.Rules
+
+ifeq ($(HAVE_LIBCRYPT),yes)
+  EXTRALS += -lcrypt
+endif
 
 TITLE=pam_pwdfile
 CFLAGS += -D_BSD_SOURCE
@@ -72,8 +76,7 @@ endif
 
 ifdef DYNAMIC
 $(LIBSHARED):	$(LIBOBJD)
-	$(LD_D) -o $@ $(LIBOBJD) $(MODULE_SIMPLE_EXTRALIBS) $(NEED_LINK_LIB_C)
-
+	$(LD_D) -o $@ $(LIBOBJD) $(EXTRALS) $(NEED_LINK_LIB_C)
 endif
 
 ifdef STATIC
@@ -82,7 +85,7 @@ endif
 
 ifdef STATIC
 $(LIBSTATIC): $(LIBOBJS)
-	$(LD) -r -o $@ $(LIBOBJS) $(MODULE_SIMPLE_EXTRALIBS)
+	$(LD) -r -o $@ $(LIBOBJS) $(EXTRALS)
 endif
 
 install: all
