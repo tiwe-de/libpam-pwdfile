@@ -1,6 +1,13 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.10 2001-06-15 21:30:16 cpbotha Exp $
+$Id: changelog,v 1.11 2001-07-14 20:50:21 cpbotha Exp $
 ---------------------------------------------------------------------------
+
+0.95 : Sat Jul 14 22:38:16 CEST 2001
+
+* added features.h, _BSD_SOURCE now defined by Makefile (for vsyslog a.o.)
+* integrated patch by Ethan Benson <erbenson@alaska.net> that enables a two
+  second PAM delay when an incorrect password is supplied.
+* yes, if this version floats for long enough, we can do the 1.0 thing.
 
 0.9: Fri Jun 15 23:23:31 CEST 2001
 

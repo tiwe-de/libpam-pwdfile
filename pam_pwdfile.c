@@ -1,12 +1,12 @@
 /* pam_pwdfile.c copyright 1999-2001 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.14 2001-06-15 21:31:46 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.15 2001-07-14 20:50:21 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.9
+ * version 0.95
  *
  * Copyright (c) Charl P. Botha, 1999-2001. All rights reserved
  *
@@ -42,6 +42,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <features.h>
 #include <syslog.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -64,6 +65,7 @@ extern char *crypt(const char *key, const char *salt);
 
 #define PWDF_PARAM "pwdfile"
 #define FLOCK_PARAM "flock"
+#define NODELAY_PARAM "nodelay"
 #define PWDFN_LEN 256
 #define CRYPTED_DESPWD_LEN 13
 #define CRYPTED_MD5PWD_LEN 34
@@ -227,6 +229,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    char salt[12], crypted_password[CRYPTED_MD5PWD_LEN+1];
    FILE *pwdfile;
    int use_flock = 0;
+   int use_delay = 1;
 
    /* we require the pwdfile switch and argument to be present, else we don't work */
    /* pcnt is the parameter counter variable for iterating through argv */
@@ -253,9 +256,19 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
       } else if (strcmp(argv[pcnt],"no" FLOCK_PARAM)==0) {
 	 /* or a "noflock" parameter */
 	 use_flock = 0;
+      } else if (strcmp(argv[pcnt],NODELAY_PARAM)==0) {
+	/* no delay on authentication failure */
+	use_delay = 0;
       }
 
    } while (++pcnt < argc);
+
+#ifdef HAVE_PAM_FAIL_DELAY
+   if (use_delay) {
+     D(("setting delay"));
+     (void) pam_fail_delay(pamh, 2000000);   /* 2 sec delay for on failure */
+   }
+#endif
    
    /* for some or other reason, the password file wasn't specified */
    if (!pwdfilename_found) {
