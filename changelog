@@ -1,6 +1,11 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.1 2000-05-22 20:55:34 cpbotha Exp $
+$Id: changelog,v 1.2 2000-08-28 07:52:46 cpbotha Exp $
 ---------------------------------------------------------------------------
+
+0.3: Mon Aug 28 09:49:27 SAST 2000
+
+* INSTALL file created.  This explains how to get pam_pwdfile compiled from
+  scratch.
 
 0.2: Mon May 22 22:41:30 SAST 2000
 
