@@ -1,12 +1,12 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.12 2001-05-12 09:59:45 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.13 2001-06-15 21:24:30 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.8
+ * version 0.9
  *
  * Copyright (c) Charl P. Botha, 1999. All rights reserved
  *
@@ -179,15 +179,18 @@ int _set_auth_tok(	pam_handle_t *pamh,
 static int fgetpwnam(FILE *stream, const char *name, char *password) {
    char tempLine[256], *tpointer, *curname, *curpass, *fgr;
    int loopdone, pwdfound;
+   int len;
    
    /* go to beginning of file */
    rewind(stream);
    /* some control variables */
    loopdone = pwdfound = 0;
+   /* fgets should do this, but we make sure */
+   tempLine[255] = '\0';
    /* iterate through lines in file, until end of file */
    do {
       /* get the current line */
-      fgr = fgets(tempLine,256,stream);
+      fgr = fgets(tempLine,255,stream);
       /* if it's valid, go on */
       if ( fgr != NULL) {
 	 /* first get the username out */
@@ -197,6 +200,10 @@ static int fgetpwnam(FILE *stream, const char *name, char *password) {
 	 if (strcmp(curname,name)==0) {
 	    /* at least we know our loop is done */
 	    loopdone = 1;
+            /* remove possible trailing newline */
+	    len = strlen(tpointer);
+	    if (tpointer[len - 1] == '\n')
+		 tpointer[len - 1] = '\0';
 	    /* get the password and put it in its place */
 	    curpass = strsep(&tpointer,":");
 	    if (curpass != NULL) {
@@ -318,7 +325,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    }
    
    /* DEBUG */
-   D(_pam_log(LOG_ERR,"got crypted password == %s", crypted_password));
+   D(_pam_log(LOG_ERR,"got crypted password == '%s'", crypted_password));
    
    /* Extract the salt and set the passwd length, depending on MD5 or DES */
    if (strncmp(crypted_password, "$1$", 3) == 0) {
@@ -332,7 +339,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    }
    
    /* DEBUG */
-   D(_pam_log(LOG_ERR,"user password crypted is %s", crypt(password,salt)));
+   D(_pam_log(LOG_ERR,"user password crypted is '%s'", crypt(password,salt)));
    
    /* if things don't match up, complain */
    if (strcmp(crypt(password,salt),crypted_password)!=0) {

@@ -1,6 +1,11 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.8 2001-05-12 09:58:43 cpbotha Exp $
+$Id: changelog,v 1.9 2001-06-15 21:24:30 cpbotha Exp $
 ---------------------------------------------------------------------------
+
+0.9: Fri Jun 15 23:23:31 CEST 2001
+
+* integrated patch by Stephen Darragh <srd@it.net.au> to fix problems with
+  short MD5 crypts and trailing newlines.
 
 0.8: Sat May 12 11:57:18 CEST 2001
 
