@@ -1,13 +1,14 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.15 2002-06-09 21:01:46 cpbotha Exp $
+$Id: changelog,v 1.16 2002-06-10 21:50:32 cpbotha Exp $
 ---------------------------------------------------------------------------
 
-0.98 : Not released yet.
+0.98 : Mon Jun 10 23:49:46 CEST 2002
 
 * added contrib directory with spec file and Makefile by Jason F. McBrayer
   <jason@xeran.com>.
-* -lcrypt is now used again (because it does seem to be necessary in some
-  cases)
+* -lcrypt is now used again (because it is necessary in some cases, doh);
+  Problem reported by Charles Vejnar <chv@fr.st>
+* That damn Mozilla beat us to 1.0!
 
 0.97 : Sat May 11 16:40:19 CEST 2002
 
