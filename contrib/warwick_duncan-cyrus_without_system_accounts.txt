@@ -1,0 +1,49 @@
+On Tue, Jan 14, 2003 at 01:06:02AM +0100, Charl P. Botha wrote:
+[...]
+> ----- Forwarded message from Darren Gibbons -----
+[...]
+>   It is however possible with certain applications patched for pam
+>   (Cyrus IMAP server e.g.) that one does not need the users to
+>   exist in the system database.
+[...]
+
+I've got it working with cyrus 2.0 and 2.1, so I'll give some pointers
+on both.  When I say `cyrus x' I mean cyrus imapd version x and
+whichever version of sasl you need with it.
+
+Cyrus 2.0
+---------
+
+- sasl must be configured with `--with-pam --enable-plain'; it doesn't
+  hurt to add `--disable cram --disable-digest'
+- imapd must be configured with `--with-auth=unix' (sounds like you got
+  that right)
+- in imapd.conf you need the line
+	sasl_pwcheck_method: PAM
+- in /etc/pam.d/imap (on FreeBSD I believe you use /etc/pam.conf, but
+  the idea is similar) you need
+  	auth  required  pam_pwdfile.so pwdfile /path/to/passwordfile
+	account  required  pam_permit.so
+- make sure your password file is readable by user cyrus
+
+The idea of all this is to use the SASL PLAIN mechanism to get the
+password in plaintext and then get SASL to leave the authentication to
+PAM, which will use pam_pwdfile.
+
+Cyrus 2.1
+---------
+
+- same as above, but different ;) in the details
+- sasl must be configured with `--with-pam --with-saslauthd
+  --enable-plain' and I disable the rest (checkapop, digest, otp, krb4,
+  etc.)
+- imapd should be configured with `--with-auth=unix'
+- in imapd.conf you need the line
+	sasl_pwcheck_method: saslauthd
+- start up saslauthd with `saslauthd -a pam'
+- you need the /etc/pam.d/imap as above, as well as (an identical)
+  /etc/pam.d/sieve if you use timsieved
+
+I think that about covers it.  One tricky bit with SASL is to get the
+right mechanisms advertised; I do this by only compiling in support for
+PLAIN and LOGIN.  If the rest don't exist they can't cause problems.
