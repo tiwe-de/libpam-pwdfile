@@ -1,5 +1,5 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.18 2003-07-07 15:09:35 cpbotha Exp $
+$Id: changelog,v 1.19 2003-12-20 19:21:19 cpbotha Exp $
 ---------------------------------------------------------------------------
 
 0.99 :
@@ -8,6 +8,9 @@ $Id: changelog,v 1.18 2003-07-07 15:09:35 cpbotha Exp $
   setup Cyrus IMAPD + pam_pwdfile so that one does not have to create system
   accounts for imapd users
 * added Makefile.standalone by Gerald Richter to the contrib files.
+* integrated patch by Greg Norris for better handling of bigcrypt/crypt
+  switcheroos.  Greg Norris in the current Debian maintainer.
+* The 't' key on my home linux workstation is going.
 
 0.98 : Mon Jun 10 23:49:46 CEST 2002
 

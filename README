@@ -1,8 +1,8 @@
 README for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: README,v 1.11 2002-06-10 21:51:04 cpbotha Exp $
+$Id: README,v 1.12 2003-12-20 19:21:19 cpbotha Exp $
 ---------------------------------------------------------------------------
 
-This is version 0.98 of pam_pwdfile.
+This is version 0.99 of pam_pwdfile.
 
 This pam module can be used for the authentication service only, in cases
 where one wants to use a different set of passwords than those in the main
@@ -34,7 +34,8 @@ to Ethan Benson for this patch.
 The ASCII password file is simply a list of lines, each looking like this:
 username:crypted_passwd[13] in the case of vanilla crypted passwords and
 username:crypted_passwd[34] in the case of MD5 crypted passwords.  The
-latter is thanks to Warwick Duncan <warwick@chemeng.uct.ac.za>.
+latter is thanks to Warwick Duncan <warwick@chemeng.uct.ac.za>.  pam_pwdfile
+also handles bigcrypt passwords.
 
 Warwick has also written a utility for managing the password files that
 pam_pwdfile uses.  Please see: http://eclipse.che.uct.ac.za/chpwdfile/
@@ -45,6 +46,3 @@ just so that one can have multiple sets of passwords for different services,
 e.g. with our /etc/imap.passwd.  It is however possible with certain
 applications patched for pam (Cyrus IMAP server e.g.) that one does not need
 the users to exist in the system database.
-
-Thanks to Michael-John Turner <mj@debian.org> pam_pwdfile is available as a
-debian package (libpam-pwdfile) from potato onwards.

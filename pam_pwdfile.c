@@ -1,14 +1,14 @@
-/* pam_pwdfile.c copyright 1999-2001 by Charl P. Botha <cpbotha@ieee.org>
+/* pam_pwdfile.c copyright 1999-2003 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.17 2002-06-10 21:51:04 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.18 2003-12-20 19:21:19 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.98
+ * version 0.99
  *
- * Copyright (c) Charl P. Botha, 1999-2002. All rights reserved
+ * Copyright (c) Charl P. Botha, 1999-2003. All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,7 +61,7 @@
 #include <security/pam_modules.h>
 
 #include "md5.h"
-/*extern char *crypt(const char *key, const char *salt);*/
+extern char *crypt(const char *key, const char *salt);
 extern char *bigcrypt(const char *key, const char *salt);
 
 #define PWDF_PARAM "pwdfile"
@@ -70,6 +70,7 @@ extern char *bigcrypt(const char *key, const char *salt);
 #define PWDFN_LEN 256
 #define CRYPTED_DESPWD_LEN 13
 #define CRYPTED_MD5PWD_LEN 34
+#define CRYPTED_BCPWD_LEN 178
 
 #ifdef DEBUG
 # define D(a) a;
@@ -210,8 +211,8 @@ static int fgetpwnam(FILE *stream, const char *name, char *password) {
 		/* get the password and put it in its place */
 		curpass = strsep(&tpointer,":");
 		if (curpass != NULL) {
-		    /* we use md5 pwd len, as this is just a safe maximum */
-		    strncpy(password,curpass,CRYPTED_MD5PWD_LEN+1);
+		    /* we use bigcrypt pwd len, as this is just a safe maximum */
+		    strncpy(password,curpass,CRYPTED_BCPWD_LEN+1);
 		    pwdfound = 1;
 		} /* if (curpass... */
 	    } /* if (strcmp(curname... */
@@ -227,7 +228,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     const char *name;
     char *password;
     char pwdfilename[PWDFN_LEN];
-    char salt[12], stored_crypted_password[CRYPTED_MD5PWD_LEN+1];
+    char salt[12], stored_crypted_password[CRYPTED_BCPWD_LEN+1];
     char *crypted_password;
     FILE *pwdfile;
     int use_flock = 0;
@@ -348,6 +349,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     
     /* Extract the salt and set the passwd length, depending on MD5 or DES */
     if (strncmp(stored_crypted_password, "$1$", 3) == 0) {
+	D(_pam_log(LOG_ERR,"password hash type is 'md5'"));
 	/* get out the salt into "salt" */
 	strncpy(salt, stored_crypted_password, 11);
 	salt[11] = '\0';
@@ -370,9 +372,16 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	/* get the salt out into "salt" */
 	strncpy(salt, stored_crypted_password, 2);
 	salt[2] = '\0';
-	stored_crypted_password[CRYPTED_DESPWD_LEN] = '\0';
-	
-	crypted_password = bigcrypt(password, salt);
+	stored_crypted_password[CRYPTED_BCPWD_LEN] = '\0';
+
+	if (strlen(stored_crypted_password) <= CRYPTED_DESPWD_LEN) {
+	    D(_pam_log(LOG_ERR,"password hash type is 'crypt'"));
+	    crypted_password = crypt(password, salt);
+	} else {
+	    D(_pam_log(LOG_ERR,"password hash type is 'bigcrypt'"));
+	    crypted_password = bigcrypt(password, salt);
+	}
+
 	if (strcmp(crypted_password, stored_crypted_password) == 0)
 	{
 	    temp_result = 1;
