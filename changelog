@@ -1,5 +1,5 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.12 2002-05-11 14:42:35 cpbotha Exp $
+$Id: changelog,v 1.13 2002-05-11 14:47:06 cpbotha Exp $
 ---------------------------------------------------------------------------
 
 0.97 : Sat May 11 16:40:19 CEST 2002
@@ -7,8 +7,10 @@ $Id: changelog,v 1.12 2002-05-11 14:42:35 cpbotha Exp $
 * added md5.h, md5.c, md5_crypt.c and bigcrypt.c from the pam_unix.c module.
   This fixes the bug where crypt() would not be able to do md5 crypting if
   an SSL library was linked into the calling application.  Several users
-  reported this, but the report (and possible patch, which I have NOT used)
-  of Yu Guanghui <ygh@dlut.edu.cn> was most useful.
+  reported this, but the report (and possible patch, which I chose not to use,
+  opting instead to emulate pam_unix) of Yu Guanghui <ygh@dlut.edu.cn> was 
+  most useful.
+* Small tweaks to documentation.
 
 0.95 : Sat Jul 14 22:38:16 CEST 2001
 
