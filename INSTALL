@@ -1,5 +1,5 @@
 INSTALL for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: INSTALL,v 1.1 2000-08-28 07:52:46 cpbotha Exp $
+$Id: INSTALL,v 1.2 2000-08-29 07:23:11 cpbotha Exp $
 ---------------------------------------------------------------------------
 
 This file is the quick and dirty on how to get pam_pwdfile compiled on your
@@ -14,8 +14,9 @@ bunzip2 -c Linux-PAM-0.72.tar.bz2 | tar -xvf -
 
 3. Prepare pam_pwdfile
 cd Linux-PAM-0.72/modules
-tar -xzvf /where/you/put/it/pam_pwdfile-0.2.tar.gz
+tar -xzvf /where/you/put/it/pam_pwdfile-x.y.tar.gz
 cd ..
+(x.y represents the pam_pwdfile version, e.g. 0.4)
 
 4. Prepare Linux-PAM
 rm default.defs
