@@ -1,6 +1,6 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.8 2000-11-11 22:52:41 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.9 2000-11-25 16:55:43 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
@@ -317,7 +317,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    
    /* get the crypted password corresponding to this user */
    if (!fgetpwnam(pwdfile, name, crypted_password)) {
-      _pam_log(LOG_ERR,"password file corrupt");
+      _pam_log(LOG_ERR,"user not found in password database");
       fclose(pwdfile);
       return PAM_AUTHINFO_UNAVAIL;
    }
