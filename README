@@ -1,0 +1,30 @@
+README for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
+$Id: README,v 1.1.1.1 1999-08-05 13:09:07 cpbotha Exp $
+---------------------------------------------------------------------------
+
+Let's say that this is version 0.1 of pam_pwdfile.
+
+This pam module can be used for the authentication service only, in cases
+where one wants to use a different set of passwords than those in the main
+system password database.  E.g. in our case we have an imap server running,
+and prefer to keep the imap passwords different from the system passwords
+for security reasons.
+
+The /etc/pam.d/imap looks like this:
+#%PAM-1.0
+auth       required	/lib/security/pam_pwdfile.so pwdfile /etc/imap.passwd
+account    required	/lib/security/pam_pwdb.so
+
+At the moment the only parameters that pam_pwdfile.so parses for is
+"pwdfile", followed by the name of the ASCII password database, as in the
+above example.
+
+The ASCII password file is simply a list of lines, each looking like this:
+username:crypted_passwd[13]
+
+Note that we still expect users to have accounts in the usual place, as we
+make use of the pam_pwdb.so module for the account service.  This module is
+just so that one can have multiple sets of passwords for different services,
+e.g. with our /etc/imap.passwd.
+
+These files have been created for inclusion into the PAM source tree.
