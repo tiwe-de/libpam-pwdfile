@@ -1,12 +1,12 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.5 2000-08-29 07:23:11 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.6 2000-11-08 00:44:19 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.4
+ * version 0.5
  *
  * Copyright (c) Charl P. Botha, 1999. All rights reserved
  *
@@ -69,7 +69,7 @@ extern char *crypt(const char *key, const char *salt);
 #define PWDF_PARAM "pwdfile"
 #define FLOCK_PARAM "flock"
 #define PWDFN_LEN 256
-#define CRYPTEDPWD_LEN 13
+#define CRYPTEDPWD_LEN 34
 
 #ifdef DEBUG
 # define D(a) a;
@@ -219,7 +219,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    const char *name;
    char *password;
    char pwdfilename[PWDFN_LEN];
-   char salt[3], crypted_password[CRYPTEDPWD_LEN+1];
+   char salt[12], crypted_password[CRYPTEDPWD_LEN+1];
    FILE *pwdfile;
    int use_flock = 0;
 
@@ -322,14 +322,20 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    /* DEBUG */
    D(_pam_log(LOG_ERR,"got crypted password == %s", crypted_password));
    
-   /* extract the salt */
-   salt[0] = crypted_password[0]; salt[1] = crypted_password[1]; salt[2] = '\0';
+   /* Extract the salt and set the passwd length, depending on MD5 or DES */
+   if (strncmp(crypted_password, "$1$", 3) == 0) {
+      strncpy(salt, crypted_password, 11);
+      salt[11] = '\0';
+   } else {
+      strncpy(salt, crypted_password, 2);
+      salt[2] = '\0';
+   }
+   crypted_passwd[CRYPTEDPWD_LEN] = '\0';
    
    /* DEBUG */
    D(_pam_log(LOG_ERR,"user password crypted is %s", crypt(password,salt)));
    
    /* if things don't match up, complain */
-   crypted_password[CRYPTEDPWD_LEN] = '\0';
    if (strcmp(crypt(password,salt),crypted_password)!=0) {
       _pam_log(LOG_ERR,"wrong password for user %s",name);
       fclose(pwdfile);

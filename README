@@ -1,8 +1,8 @@
 README for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: README,v 1.2 2000-05-22 20:55:34 cpbotha Exp $
+$Id: README,v 1.3 2000-11-08 00:44:19 cpbotha Exp $
 ---------------------------------------------------------------------------
 
-This is version 0.2 of pam_pwdfile.
+This is version 0.5 of pam_pwdfile.
 
 This pam module can be used for the authentication service only, in cases
 where one wants to use a different set of passwords than those in the main
@@ -27,7 +27,9 @@ Example:
 auth  required /lib/security/pam_pwdfile.so pwdfile /etc/blah.passwd flock
 
 The ASCII password file is simply a list of lines, each looking like this:
-username:crypted_passwd[13]
+username:crypted_passwd[13] in the case of vanilla crypted passwords and
+username:crypted_passwd[34] in the case of MD5 crypted passwords.  The
+latter is thanks to Warwick Duncan <warwick@chemeng.uct.ac.za>.
 
 Note that we still expect users to have accounts in the usual place, as we
 make use of the pam_pwdb.so module for the account service.  This module is
