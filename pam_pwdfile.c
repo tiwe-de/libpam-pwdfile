@@ -1,12 +1,12 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.7 2000-11-08 00:54:16 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.8 2000-11-11 22:52:41 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.5
+ * version 0.6
  *
  * Copyright (c) Charl P. Botha, 1999. All rights reserved
  *
@@ -69,7 +69,9 @@ extern char *crypt(const char *key, const char *salt);
 #define PWDF_PARAM "pwdfile"
 #define FLOCK_PARAM "flock"
 #define PWDFN_LEN 256
-#define CRYPTEDPWD_LEN 34
+#define CRYPTED_DESPWD_LEN 13
+#define CRYPTED_MD5PWD_LEN 34
+
 
 #ifdef DEBUG
 # define D(a) a;
@@ -203,7 +205,8 @@ static int fgetpwnam(FILE *stream, const char *name, char *password) {
 	    /* get the password and put it in its place */
 	    curpass = strsep(&tpointer,":");
 	    if (curpass != NULL) {
-	       strncpy(password,curpass,CRYPTEDPWD_LEN+1);
+	       /* we use md5 pwd len, as this is just a safe maximum */
+	       strncpy(password,curpass,CRYPTED_MD5PWD_LEN+1);
 	       pwdfound = 1;
 	    } /* if (curpass... */
 	 } /* if (strcmp(curname... */
@@ -219,7 +222,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    const char *name;
    char *password;
    char pwdfilename[PWDFN_LEN];
-   char salt[12], crypted_password[CRYPTEDPWD_LEN+1];
+   char salt[12], crypted_password[CRYPTED_MD5PWD_LEN+1];
    FILE *pwdfile;
    int use_flock = 0;
 
@@ -326,11 +329,12 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
    if (strncmp(crypted_password, "$1$", 3) == 0) {
       strncpy(salt, crypted_password, 11);
       salt[11] = '\0';
+      crypted_password[CRYPTED_MD5PWD_LEN] = '\0';
    } else {
       strncpy(salt, crypted_password, 2);
       salt[2] = '\0';
+      crypted_password[CRYPTED_DESPWD_LEN] = '\0';      
    }
-   crypted_password[CRYPTEDPWD_LEN] = '\0';
    
    /* DEBUG */
    D(_pam_log(LOG_ERR,"user password crypted is %s", crypt(password,salt)));

@@ -1,6 +1,11 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.4 2000-11-08 00:44:19 cpbotha Exp $
+$Id: changelog,v 1.5 2000-11-11 22:52:41 cpbotha Exp $
 ---------------------------------------------------------------------------
+
+0.6: Sat Nov 11 23:51:32 CET 2000
+
+* fixed a stupid bug I introduced when integrating Warwick's patch; tested
+  fine with both DES and MD5 crypts
 
 0.5: Wed Nov  8 01:39:22 CET 2000
 
