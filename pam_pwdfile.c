@@ -1,6 +1,6 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.6 2000-11-08 00:44:19 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.7 2000-11-08 00:54:16 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
@@ -330,7 +330,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
       strncpy(salt, crypted_password, 2);
       salt[2] = '\0';
    }
-   crypted_passwd[CRYPTEDPWD_LEN] = '\0';
+   crypted_password[CRYPTEDPWD_LEN] = '\0';
    
    /* DEBUG */
    D(_pam_log(LOG_ERR,"user password crypted is %s", crypt(password,salt)));
