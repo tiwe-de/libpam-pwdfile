@@ -1,5 +1,5 @@
 README for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: README,v 1.9 2002-05-11 14:42:35 cpbotha Exp $
+$Id: README,v 1.10 2002-05-11 14:46:23 cpbotha Exp $
 ---------------------------------------------------------------------------
 
 This is version 0.97 of pam_pwdfile.
@@ -36,6 +36,9 @@ username:crypted_passwd[13] in the case of vanilla crypted passwords and
 username:crypted_passwd[34] in the case of MD5 crypted passwords.  The
 latter is thanks to Warwick Duncan <warwick@chemeng.uct.ac.za>.
 
+Warwick has also written a utility for managing the password files that
+pam_pwdfile uses.  Please see: http://eclipse.che.uct.ac.za/chpwdfile/
+
 Note that we still expect users to have accounts in the usual place, as we
 make use of the pam_pwdb.so module for the account service.  This module is
 just so that one can have multiple sets of passwords for different services,
@@ -43,6 +46,5 @@ e.g. with our /etc/imap.passwd.  It is however possible with certain
 applications patched for pam (Cyrus IMAP server e.g.) that one does not need
 the users to exist in the system database.
 
-These files have been created for inclusion into the PAM source tree.
 Thanks to Michael-John Turner <mj@debian.org> pam_pwdfile is available as a
 debian package (libpam-pwdfile) from potato onwards.
