@@ -1,6 +1,6 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.10 2001-04-17 21:16:12 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.11 2001-05-12 09:58:43 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
@@ -41,8 +41,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <security/_pam_aconf.h>
 
 #include <syslog.h>
 #include <stdarg.h>

@@ -1,6 +1,11 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.7 2001-04-17 21:16:12 cpbotha Exp $
+$Id: changelog,v 1.8 2001-05-12 09:58:43 cpbotha Exp $
 ---------------------------------------------------------------------------
+
+0.8: Sat May 12 11:57:18 CEST 2001
+
+* the MrKen (aka MJ Turner) release.  Removed unnecessary include that was
+  breaking the debian builds.
 
 0.7: Tue Apr 17 23:13:34 CEST 2001
 
