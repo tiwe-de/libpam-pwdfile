@@ -1,8 +1,8 @@
 README for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: README,v 1.4 2000-11-11 22:52:54 cpbotha Exp $
+$Id: README,v 1.5 2001-04-17 21:16:12 cpbotha Exp $
 ---------------------------------------------------------------------------
 
-This is version 0.6 of pam_pwdfile.
+This is version 0.7 of pam_pwdfile.
 
 This pam module can be used for the authentication service only, in cases
 where one wants to use a different set of passwords than those in the main

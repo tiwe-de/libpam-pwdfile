@@ -1,12 +1,12 @@
 /* pam_pwdfile.c copyright 1999 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.9 2000-11-25 16:55:43 cpbotha Exp $
+ * $Id: pam_pwdfile.c,v 1.10 2001-04-17 21:16:12 cpbotha Exp $
  * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.6
+ * version 0.7
  *
  * Copyright (c) Charl P. Botha, 1999. All rights reserved
  *
@@ -42,12 +42,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LINUX 
-#include <security/pam_appl.h>
-#endif  /* LINUX */
-
-#define PAM_SM_AUTH
-#include <security/pam_modules.h>
+#include <security/_pam_aconf.h>
 
 #include <syslog.h>
 #include <stdarg.h>
@@ -59,9 +54,12 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/file.h>
-
-#define _XOPEN_SOURCE
 #include <unistd.h>
+
+#include <security/pam_appl.h>
+
+#define PAM_SM_AUTH
+#include <security/pam_modules.h>
 
 /* unistd.h does not declare this as it should */
 extern char *crypt(const char *key, const char *salt);
@@ -71,7 +69,6 @@ extern char *crypt(const char *key, const char *salt);
 #define PWDFN_LEN 256
 #define CRYPTED_DESPWD_LEN 13
 #define CRYPTED_MD5PWD_LEN 34
-
 
 #ifdef DEBUG
 # define D(a) a;

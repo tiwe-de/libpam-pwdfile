@@ -1,5 +1,5 @@
 INSTALL for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: INSTALL,v 1.2 2000-08-29 07:23:11 cpbotha Exp $
+$Id: INSTALL,v 1.3 2001-04-17 21:16:12 cpbotha Exp $
 ---------------------------------------------------------------------------
 
 This file is the quick and dirty on how to get pam_pwdfile compiled on your
@@ -7,41 +7,33 @@ system.  As per usual, I can not be held responsible for the results of the
 application of this information.
 
 1. Get the Linux PAM source code tarball.  Currently, this is at:
-http://www.us.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-0.72.tar.bz2
+http://www.us.kernel.org/pub/linux/libs/pam/pre/library/Linux-PAM-0.75.tar.bz2
 
 2. Extract the tarball somewhere convenient:
-bunzip2 -c Linux-PAM-0.72.tar.bz2 | tar -xvf -
+bunzip2 -c Linux-PAM-0.75.tar.bz2 | tar -xvf -
 
 3. Prepare pam_pwdfile
-cd Linux-PAM-0.72/modules
+cd Linux-PAM-0.75/modules
 tar -xzvf /where/you/put/it/pam_pwdfile-x.y.tar.gz
 cd ..
-(x.y represents the pam_pwdfile version, e.g. 0.4)
+(x.y represents the pam_pwdfile version, e.g. 0.7)
 
 4. Prepare Linux-PAM
 rm default.defs
 ln -s defs/whatever.defs default.defs (on my system whatever == debian)
 
-5. Also, it seems one of the modules needs a little help:
-cd modules/pam_pwdb
-edit Makefile
-search the dependency for $(CHKPWD), add $(EXTRALS) to $(CC) line
-(Alternatively, you can just delete any modules that cause problems, see the
-note at the "make all" step)
-
-6. cd ../.. (so that you're back in Linux-PAM-0.72)
+5. in Linux-PAM-0.72/ do:
    make all
    NOTE: if you only need pam_pwdfile and some of the other modules are
          causing you problems during compilation, go and delete them (i.e.
-	 delete the whole modules dir, e.g. rm -rf modules/pam_pwdb) and then
+	 delete the whole module dir, e.g. rm -rf modules/pam_pwdb) and then
 	 restart make all in the top level directory.
 	 
-7. When you're done, there should be a pam_pwdfile.so in modules/pam_pwdfile;
+6. When you're done, there should be a pam_pwdfile.so in modules/pam_pwdfile;
    copy this into your pam modules directory. (this is /lib/security/ on my
    debian 2.2. system)
    
-8. You should now be operational.
-
+7. You should now be operational.  See the README for more info.
 
 Remember that pam_pwdfile is packaged as a .deb and is part of the official
 Debian distribution.
