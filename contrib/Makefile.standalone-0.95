@@ -1,0 +1,26 @@
+PAM_LIB_DIR = /lib/security
+CC = gcc
+LD = ld
+INSTALL = /usr/bin/install
+CFLAGS = -fPIC -O2 -c -g -Wall -Wformat-security
+LDFLAGS = -x --shared 
+PAMLIB = -lpam
+CRYPTLIB = -lcrypt
+
+all: pam_pwdfile.so
+
+pam_pwdfile.so: pam_pwdfile.o
+	$(LD) $(LDFLAGS) -o pam_pwdfile.so pam_pwdfile.o $(PAMLIB) $(CRYPTLIB)
+
+pam_pwdfile.o: pam_pwdfile.c
+	$(CC) $(CFLAGS) pam_pwdfile.c
+
+install: pam_pwdfile.so
+	$(INSTALL) -m 0755 -d $(PAM_LIB_DIR)
+	$(INSTALL) -m 0755 pam_pwdfile.so $(PAM_LIB_DIR)
+
+clean:
+	rm -f pam_pwdfile.o pam_pwdfile.so
+
+spotless:
+	rm -f pam_pwdfile.so pam_pwdfile.o *~ core
