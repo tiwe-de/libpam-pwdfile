@@ -1,8 +1,8 @@
 changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: changelog,v 1.19 2003-12-20 19:21:19 cpbotha Exp $
+$Id: changelog,v 1.20 2003-12-20 19:30:57 cpbotha Exp $
 ---------------------------------------------------------------------------
 
-0.99 :
+0.99 : Sat Dec 20 20:30:37 CET 2003
 
 * added micro howto by Warwick Duncan (in contrib/ dir) explaining how to
   setup Cyrus IMAPD + pam_pwdfile so that one does not have to create system
