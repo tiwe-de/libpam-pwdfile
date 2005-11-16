@@ -2,7 +2,7 @@ Source: libpam-pwdfile
 Section: admin
 Priority: extra
 Maintainer: Greg Norris <adric@debian.org>
-Standards-Version: 3.5.10
+Standards-Version: 3.6.2
 Build-Depends: debhelper, libpam0g-dev
 
 Package: libpam-pwdfile

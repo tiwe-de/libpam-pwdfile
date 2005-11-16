@@ -1,3 +1,10 @@
+libpam-pwdfile (0.99-3) unstable; urgency=low
+
+  * Update doeumentation in README.Debian
+  * Updated to policy version 3.6.2 (no changes required)
+
+ -- Greg Norris <adric@debian.org>  Wed, 16 Nov 2005 07:56:25 -0600
+
 libpam-pwdfile (0.99-2) unstable; urgency=low
 
   * Include contrib/warwick_duncan-cyrus_without_system_accounts.txt under

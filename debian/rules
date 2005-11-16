@@ -6,7 +6,7 @@
 #export DH_VERBOSE=1
 
 # This is the debhelper compatability version to use.
-export DH_COMPAT=1
+export DH_COMPAT=4
 
 export PACKAGE=pam_pwdfile
 
@@ -35,7 +35,7 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	$(MAKE) -f Makefile.Debian DESTDIR=$(CURDIR)/debian/tmp install
+	$(MAKE) -f Makefile.Debian DESTDIR=$(CURDIR)/debian/`dh_listpackages` install
 
 	touch install-stamp
 
@@ -56,7 +56,7 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installinit
 #	dh_installcron
-	dh_installmanpages
+	dh_installman
 #	dh_installinfo
 #	dh_undocumented
 	dh_installchangelogs changelog

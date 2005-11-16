@@ -1,16 +1,25 @@
 libpam-pwdfile for Debian
 -------------------------
 
-This module allows one to authenticate users using a passwd-like file.
-Creating this file currently means either copying the relevant entries from
-/etc/{passwd,shadow}, or using the chpwdfile utility (not yet packaged) from
-http://eclipse.che.uct.ac.za/chpwdfile/.
+This module allows one to authenticate users via an arbitrary password file.
+The file follows the same format as /etc/passwd and /etc/shadow, although only
+the first two fields are required.  In other words, each entry should start at
+the beginning of a line and use the following format:
 
-Below is an example of a working /etc/pam.d/* configuration... specifically,
-this is copy of my /etc/pam.d/qpopper.  Please note that the "account" entry
-is required.
+   [username]:[password-hash]
 
-   auth       required     pam_pwdfile.so pwdfile /etc/qpopper/qpopper.pwd
-   account    required     pam_unix_acct.so
 
- -- Greg Norris <adric@debian.org>, Tue, 08 Jul 2003 18:57:16 -0500
+The following command provides a quick way to generate an appropriate hash,
+which may then be copied into your password file.
+
+   perl -e '$salt=q($1$).int(rand(1e8)); print "password: "; chomp($passwd=<STDIN>); print crypt($passwd,$salt),"\n"'
+
+
+Here's an example of a working configuration... specifically, this is copied
+from my /etc/pam.d/dovecot file.
+
+   auth required pam_pwdfile.so pwdfile=/etc/dovecot/dovecot.passwd
+   @include common-account
+   @include common-session
+
+ -- Greg Norris <adric@debian.org>  Wed, 16 Nov 2005 07:50:37 -0600
