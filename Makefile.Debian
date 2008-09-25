@@ -3,9 +3,9 @@
 TITLE=pam_pwdfile
 
 CC = gcc
-LD = ld
-CFLAGS = -fPIC -c -g -Wall -Wformat-security
-LDFLAGS = -x --shared
+LD = gcc
+CFLAGS = -fPIC -c -g -Wall -Wformat-security -fvisibility=hidden
+LDFLAGS = -Wl,-x --shared
 LDLIBS = -lcrypt -lpam -lpam_misc
 LIBSRC = $(TITLE).c
 LIBOBJ = $(TITLE).o md5_good.o md5_broken.o md5_crypt_good.o md5_crypt_broken.o bigcrypt.o

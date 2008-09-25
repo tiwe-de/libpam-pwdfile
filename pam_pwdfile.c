@@ -222,6 +222,7 @@ static int fgetpwnam(FILE *stream, const char *name, char *password) {
 }
 
 /* expected hook for auth service */
+__attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 				   int argc, const char **argv) {
     int retval, pcnt, pwdfilename_found;
@@ -408,6 +409,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 }
 
 /* another expected hook */
+__attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags, 
 			      int argc, const char **argv)
 {
