@@ -37,10 +37,18 @@ username:crypted_passwd[34] in the case of MD5 crypted passwords.  The
 latter is thanks to Warwick Duncan <warwick@chemeng.uct.ac.za>.  pam_pwdfile
 also handles bigcrypt passwords.
 
-Warwick has also written a utility for managing the password files that
-pam_pwdfile uses.  Please see: http://eclipse.che.uct.ac.za/chpwdfile/
+NOTES:
+-----
 
-Note that we still expect users to have accounts in the usual place, as we
+* Also have a look at the files in the contrib subdirectory.
+  Especially if you're having trouble building paw_pwdfile, the
+  Makefile.standalone could be your new friend.
+
+* Warwick has also written a utility for managing the password files that
+pam_pwdfile uses.  The website has disappeared, but I've mirrored the
+source code here: http://cpbotha.net/files/mirror/chpwdfile-0.24.tar.gz
+
+* Note that we still expect users to have accounts in the usual place, as we
 make use of the pam_pwdb.so module for the account service.  This module is
 just so that one can have multiple sets of passwords for different services,
 e.g. with our /etc/imap.passwd.  It is however possible with certain
