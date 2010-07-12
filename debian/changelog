@@ -1,3 +1,9 @@
+libpam-pwdfile (0.99-4) unstable; urgency=low
+
+  * Orphan this package (set maintainer to Debian QA Group).
+
+ -- Greg Norris <adric@debian.org>  Mon, 12 Jul 2010 15:38:54 -0500
+
 libpam-pwdfile (0.99-3.1) unstable; urgency=low
 
   * Non-maintainer upload.
