@@ -1,0 +1,2 @@
+#!/usr/bin/dh-exec
+pam_pwdfile.so lib/${DEB_HOST_MULTIARCH}/security/

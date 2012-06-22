@@ -1,0 +1,23 @@
+Description: Mark the pam_sm_* functions as __attribute__((visibility("default")))
+Author: Peter Palfrader <weasel@debian.org>
+Bug-Debian: http://bugs.debian.org/499203
+Last-Update: 2012-06-20
+
+--- libpam-pwdfile-0.99.orig/pam_pwdfile.c
++++ libpam-pwdfile-0.99/pam_pwdfile.c
+@@ -222,6 +222,7 @@
+ }
+ 
+ /* expected hook for auth service */
++__attribute__((visibility("default")))
+ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
+ 				   int argc, const char **argv) {
+     int retval, pcnt, pwdfilename_found;
+@@ -408,6 +409,7 @@
+ }
+ 
+ /* another expected hook */
++__attribute__((visibility("default")))
+ PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags, 
+ 			      int argc, const char **argv)
+ {

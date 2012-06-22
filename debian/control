@@ -1,14 +1,17 @@
 Source: libpam-pwdfile
 Section: admin
 Priority: extra
-Maintainer: Debian QA Group <packages@qa.debian.org>
-Standards-Version: 3.6.2
-Build-Depends: debhelper, libpam0g-dev
+Maintainer: Timo Weingärtner <timo@tiwe.de>
+Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 9), dh-exec (>=0.3), libpam0g-dev
+Homepage: http://code.google.com/p/pam-pwdfile/
 
 Package: libpam-pwdfile
 Architecture: any
-Depends: ${shlibs:Depends}
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: PAM module allowing authentication via an /etc/passwd-like file
- This PAM module lets you use an arbitrarily-named text file similar in 
- structure to /etc/passwd to authenticate users. Both DES and MD5
- hashed passwords are supported.
+ This PAM module lets you use an arbitrarily-named text file similar in
+ structure to /etc/passwd to authenticate users. It supports libc's crypt
+ plus md5crypt with a broken md5 and Digital UNIX's bigcrypt.

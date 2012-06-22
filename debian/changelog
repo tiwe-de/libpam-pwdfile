@@ -1,3 +1,16 @@
+libpam-pwdfile (0.99-5) unstable; urgency=low
+
+  * New Maintainer (Closes: #588877)
+  * debian/patches/regular_crypt: Use libc's crypt in the regular way to
+    support newer crypt types, esp. SHA2 based ones.
+  * Bump Standards-Version to 3.9.3.
+  * Bump dh compat level to 9.
+  * Enable Multi-Arch.
+  * Use source/format 3.0 (quilt).
+  * Move Makefile.Debian to debian/Makefile 
+
+ -- Timo Weingärtner <timo@tiwe.de>  Fri, 22 Jun 2012 10:35:36 +0200
+
 libpam-pwdfile (0.99-4) unstable; urgency=low
 
   * Orphan this package (set maintainer to Debian QA Group).

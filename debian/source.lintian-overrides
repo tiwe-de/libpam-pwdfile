@@ -1,0 +1,3 @@
+# already in upstream tarball
+source-contains-cvs-control-dir contrib/CVS
+source-contains-cvs-control-dir CVS
