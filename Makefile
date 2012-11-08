@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2002-06-09 21:01:46 cpbotha Exp $
+# $Id: Makefile,v 1.5 2002/06/09 21:01:46 cpbotha Exp $
 #
 # This Makefile controls a build process of $(TITLE) module for
 # Linux-PAM. You should not modify this Makefile (unless you know

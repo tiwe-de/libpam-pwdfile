@@ -1,5 +1,5 @@
 /*
- * $Id: md5.c,v 1.1 2002-05-11 14:42:35 cpbotha Exp $
+ * $Id: md5.c,v 1.1 2002/05/11 14:42:35 cpbotha Exp $
  *
  * This code implements the MD5 message-digest algorithm.
  * The algorithm is due to Ron Rivest.  This code was

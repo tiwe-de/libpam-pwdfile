@@ -1,4 +1,4 @@
-$Id: README.txt,v 1.3 2003-07-07 15:09:41 cpbotha Exp $
+$Id: README.txt,v 1.3 2003/07/07 15:09:41 cpbotha Exp $
 
 * Makefile.standalone-0.95 and pam-pwdfile.spec were contributed by Jason F.
   McBrayer <jason@xeran.com>.  You can use these for building RPMs of
