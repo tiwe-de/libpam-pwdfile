@@ -2,7 +2,7 @@ PAM_LIB_DIR ?= $(DESTDIR)/lib/security
 INSTALL ?= install
 CFLAGS ?= -O2 -g -Wall -Wformat-security
 
-CFLAGS += -fPIC
+CFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS += -Wl,-x -shared
 
 TITLE = pam_pwdfile
