@@ -25,7 +25,6 @@
  */
 
 #include <string.h>
-#include <security/_pam_macros.h>
 
 char *crypt(const char *key, const char *salt);
 char *bigcrypt(const char *key, const char *salt);
@@ -50,8 +49,6 @@ char *bigcrypt(const char *key, const char *salt)
 	unsigned long int keylen, n_seg, j;
 	char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
 	char keybuf[KEYBUF_SIZE + 1];
-
-	D(("called with key='%s', salt='%s'.", key, salt));
 
 	/* reset arrays */
 	memset(keybuf, 0, KEYBUF_SIZE + 1);
@@ -111,9 +108,7 @@ char *bigcrypt(const char *key, const char *salt)
 			salt_ptr = cipher_ptr - ESEGMENT_SIZE;
 		}
 	}
-	D(("key=|%s|, salt=|%s|\nbuf=|%s|\n", key, salt, dec_c2_cryptbuf));
 
 	/* this is the <NUL> terminated encrypted password */
-
 	return dec_c2_cryptbuf;
 }
