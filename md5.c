@@ -19,28 +19,16 @@
  */
 
 #include <string.h>
+#include <byteswap.h>
 #include "md5.h"
 
 #ifndef HIGHFIRST
 #define byteReverse(buf, len)	/* Nothing */
 #else
-static void byteReverse(unsigned char *buf, unsigned longs);
-
-#ifndef ASM_MD5
-/*
- * Note: this code is harmless on little-endian machines.
- */
-static void byteReverse(unsigned char *buf, unsigned longs)
-{
-	uint32 t;
-	do {
-		t = (uint32) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
-		    ((unsigned) buf[1] << 8 | buf[0]);
-		*(uint32 *) buf = t;
-		buf += 4;
-	} while (--longs);
+static void byteReverse(unsigned char *buf, unsigned longs) {
+	for (; longs; --longs, buf +=4)
+		*((uint32 *) buf) = bswap_32(*((uint32 *) buf));
 }
-#endif
 #endif
 
 /*
@@ -151,8 +139,6 @@ void MD5Name(MD5Final)(unsigned char digest[16], struct MD5Context *ctx)
 	memset(ctx, 0, sizeof(ctx));	/* In case it's sensitive */
 }
 
-#ifndef ASM_MD5
-
 /* The four core functions - F1 is optimized somewhat */
 
 /* #define F1(x, y, z) (x & y | ~x & z) */
@@ -252,5 +238,3 @@ void MD5Name(MD5Transform)(uint32 buf[4], uint32 const in[16])
 	buf[2] += c;
 	buf[3] += d;
 }
-
-#endif
