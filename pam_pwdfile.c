@@ -65,10 +65,6 @@
 extern char *crypt(const char *key, const char *salt);
 extern char *bigcrypt(const char *key, const char *salt);
 
-#define PWDF_PARAM "pwdfile"
-#define FLOCK_PARAM "flock"
-#define NODELAY_PARAM "nodelay"
-#define PWDFN_LEN 256
 #define CRYPTED_DESPWD_LEN 13
 #define CRYPTED_MD5PWD_LEN 34
 #define CRYPTED_BCPWD_LEN 178
@@ -209,10 +205,10 @@ static int fgetpwnam(FILE *stream, const char *name, char *password) {
 __attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 				   int argc, const char **argv) {
-    int retval, pcnt, pwdfilename_found;
+    int retval, i;
     const char *name;
     char *password;
-    char pwdfilename[PWDFN_LEN];
+    char const * pwdfilename = NULL;
     char salt[12], stored_crypted_password[CRYPTED_BCPWD_LEN+1];
     char *crypted_password;
     FILE *pwdfile;
@@ -222,38 +218,20 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     int debug = 0;
     
     /* we require the pwdfile switch and argument to be present, else we don't work */
-    /* pcnt is the parameter counter variable for iterating through argv */
-    pcnt = pwdfilename_found = 0;
-    do {
-	/* see if the current parameter looks like "pwdfile" */
-	if (strcmp(argv[pcnt],PWDF_PARAM)==0) {
-	    /* if argv is long enough, grab the subsequent parameter */
-	    if (pcnt+1 < argc) {
-		/* make sure we can't overflow */
-		strncpy(pwdfilename,argv[++pcnt],PWDFN_LEN);
-		/* indicate that we've found it */
-		pwdfilename_found = 1;
-	    }
-	    /* also check for "pwdfile=blah" */
-	} else if (strncmp(argv[pcnt],PWDF_PARAM "=",sizeof(PWDF_PARAM "=")-1)==0) {
-	    /* make sure we can't overflow */
-	    strncpy(pwdfilename,argv[pcnt]+sizeof(PWDF_PARAM),PWDFN_LEN);
-	    /* indicate that we've found it */
-	    pwdfilename_found = 1;
-	} else if (strcmp(argv[pcnt],FLOCK_PARAM)==0) {
-	    /* we have a "flock" parameter */
+    for (i = 0; i < argc; ++i) {
+	if (!strcmp(argv[i], "pwdfile") && i + 1 < argc)
+	    pwdfilename = argv[++i];
+	else if (!strncmp(argv[i], "pwdfile=", strlen("pwdfile=")))
+	    pwdfilename = argv[i] + strlen("pwdfile=");
+	else if (!strcmp(argv[i], "flock"))
 	    use_flock = 1;
-	} else if (strcmp(argv[pcnt],"no" FLOCK_PARAM)==0) {
-	    /* or a "noflock" parameter */
+	else if (!strcmp(argv[i], "noflock"))
 	    use_flock = 0;
-	} else if (strcmp(argv[pcnt],NODELAY_PARAM)==0) {
-	    /* no delay on authentication failure */
+	else if (!strcmp(argv[i], "nodelay"))
 	    use_delay = 0;
-	} else if (strcmp(argv[pcnt], "debug") == 0) {
+	else if (!strcmp(argv[i], "debug"))
 	    debug = 1;
-	}
-	
-    } while (++pcnt < argc);
+    }
     
 #ifdef HAVE_PAM_FAIL_DELAY
     if (use_delay) {
@@ -262,7 +240,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     }
 #endif
     
-    if (!pwdfilename_found) {
+    if (!pwdfilename) {
 	pam_syslog(pamh, LOG_ERR, "password file name not specified");
 	return PAM_AUTHINFO_UNAVAIL;
     }
