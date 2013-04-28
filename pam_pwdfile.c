@@ -69,10 +69,6 @@ extern char *bigcrypt(const char *key, const char *salt);
 #define CRYPTED_MD5PWD_LEN 34
 #define CRYPTED_BCPWD_LEN 178
 
-/* prototypes */
-int converse(pam_handle_t *, int, struct pam_message **, struct pam_response **);
-int _set_auth_tok(pam_handle_t *, int, int, const char **);
-
 static int lock_fd(int fd) {
     int delay;
     
@@ -89,72 +85,6 @@ static int lock_fd(int fd) {
     failed:
     return -1;
 }
-
-/* this function ripped from pam_unix/support.c */
-int converse(	pam_handle_t *pamh,
-		int nargs, 
-		struct pam_message **message,
-		struct pam_response **response	) {
-    int retval;
-    struct pam_conv *conv;
-    
-    retval = pam_get_item(	pamh, PAM_CONV,  (const void **) &conv ) ; 
-    if ( retval == PAM_SUCCESS ) {
-	retval = conv->conv( 	nargs,  
-				( const struct pam_message ** ) message, 
-				response, 
-				conv->appdata_ptr );
-    }
-    return retval;
-}
-
-/* this function ripped from pam_unix/support.c */
-int _set_auth_tok(	pam_handle_t *pamh, 
-			int flags, int argc, 
-			const char **argv	) {
-    int	retval;
-    char	*p;
-    
-    struct pam_message msg[1],*pmsg[1];
-    struct pam_response *resp;
-    
-    /* set up conversation call */
-    
-    pmsg[0] = &msg[0];
-    msg[0].msg_style = PAM_PROMPT_ECHO_OFF;
-    msg[0].msg = "Password: ";
-    resp = NULL;
-    
-    if ( ( retval = converse( pamh, 1 , pmsg, &resp ) ) != PAM_SUCCESS ) 
-	return retval;
-    
-    if ( resp ) 
-    {
-	if ( ( flags & PAM_DISALLOW_NULL_AUTHTOK ) && 
-	     resp[0].resp == NULL ) 
-	{
-	    free( resp );
-	    return PAM_AUTH_ERR;
-	}
-	
-	p = resp[ 0 ].resp;
-	
-	/* This could be a memory leak. If resp[0].resp 
-	 is malloc()ed, then it has to be free()ed! 
-	 -- alex 
-	 */
-	
-	resp[ 0 ].resp = NULL; 		  				  
-	
-    } 
-    else 
-	return PAM_CONV_ERR;
-    
-    free( resp );
-    pam_set_item( pamh, PAM_AUTHTOK, p );
-    return PAM_SUCCESS;
-}
-
 
 /* puts the crypted password corresponding to user "name" in password,
  * from a file with lines consisting of: name:crypted_password
@@ -207,7 +137,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 				   int argc, const char **argv) {
     int retval, i;
     const char *name;
-    char *password;
+    char const * password;
     char const * pwdfilename = NULL;
     char salt[12], stored_crypted_password[CRYPTED_BCPWD_LEN+1];
     char *crypted_password;
@@ -259,7 +189,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     }
     
     /* get user name */
-    if ((retval = pam_get_user(pamh,&name,"login: ")) != PAM_SUCCESS) {
+    if ((retval = pam_get_user(pamh, &name, NULL)) != PAM_SUCCESS) {
 	pam_syslog(pamh, LOG_ERR, "username not found");
 	fclose(pwdfile);
 	return retval;
@@ -267,18 +197,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     
     if (debug) pam_syslog(pamh, LOG_DEBUG, "username is %s", name);
     
-    /* get password - code from pam_unix_auth.c */
-    pam_get_item(pamh, PAM_AUTHTOK, (void *)&password);
-    if (!password) {
-	retval = _set_auth_tok(pamh, flags, argc, argv);
-	if (retval!=PAM_SUCCESS) {
-	    fclose(pwdfile);
-	    return retval;
-	}
-    }
-    pam_get_item(pamh, PAM_AUTHTOK, (void *)&password);
-    
-    if ((retval = pam_get_item(pamh, PAM_AUTHTOK, (void *)&password)) != PAM_SUCCESS) {
+    if ((retval = pam_get_authtok(pamh, PAM_AUTHTOK, &password, NULL)) != PAM_SUCCESS) {
 	pam_syslog(pamh, LOG_ERR, "auth token not found");
 	fclose(pwdfile);
 	return retval;
