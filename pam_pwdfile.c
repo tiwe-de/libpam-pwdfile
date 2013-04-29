@@ -91,43 +91,33 @@ static int lock_fd(int fd) {
  * if unsucessful, returns 0
  */
 static int fgetpwnam(FILE *stream, const char *name, char *password) {
-    char tempLine[256], *tpointer, *curname, *curpass, *fgr;
-    int loopdone, pwdfound;
-    int len;
+    char * linebuf = NULL;
+    size_t linebuflen;
+    int pwdfound = 0;
     
-    /* go to beginning of file */
-    rewind(stream);
-    /* some control variables */
-    loopdone = pwdfound = 0;
-    /* fgets should do this, but we make sure */
-    tempLine[255] = '\0';
     /* iterate through lines in file, until end of file */
-    do {
-	/* get the current line */
-	fgr = fgets(tempLine,255,stream);
-	/* if it's valid, go on */
-	if ( fgr != NULL) {
-	    /* first get the username out */
-	    tpointer = tempLine;
-	    curname = strsep(&tpointer,":");
-	    /* check to see if it's the right one */
-	    if (strcmp(curname,name)==0) {
-		/* at least we know our loop is done */
-		loopdone = 1;
-		/* remove possible trailing newline */
-		len = strlen(tpointer);
-		if (tpointer[len - 1] == '\n')
-		    tpointer[len - 1] = '\0';
-		/* get the password and put it in its place */
-		curpass = strsep(&tpointer,":");
-		if (curpass != NULL) {
-		    /* we use bigcrypt pwd len, as this is just a safe maximum */
-		    strncpy(password,curpass,CRYPTED_BCPWD_LEN+1);
-		    pwdfound = 1;
-		} /* if (curpass... */
-	    } /* if (strcmp(curname... */
-	} /* if (tempLine... */
-    } while (fgr != NULL);
+    while (getline(&linebuf, &linebuflen, stream) > 0) {
+	/* strsep changes its argument, make a copy */
+	char * nexttok = linebuf;
+	
+	/* first field: username */
+	char * curtok = strsep(&nexttok, ":");
+	
+	/* skip non-matchin usernames */
+	if (strcmp(curtok, name))
+	    continue;
+	
+	/* second field: password (until next colon or newline) */
+	curtok = strsep(&nexttok, ":\n");
+	
+	if (curtok) {
+	    /* we use bigcrypt pwd len, as this is just a safe maximum */
+	    strncpy(password, curtok, CRYPTED_BCPWD_LEN + 1);
+	    pwdfound = 1;
+	    break;
+	}
+    }
+    free(linebuf); /* allocated by getline */
     return pwdfound;
 }
 
