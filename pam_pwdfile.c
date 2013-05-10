@@ -76,10 +76,6 @@
 #include "md5.h"
 #include "bigcrypt.h"
 
-#define CRYPTED_DESPWD_LEN 13
-#define CRYPTED_MD5PWD_LEN 34
-#define CRYPTED_BCPWD_LEN 178
-
 static int lock_fd(int fd) {
     int delay;
     
@@ -97,56 +93,26 @@ static int lock_fd(int fd) {
     return -1;
 }
 
-/* puts the crypted password corresponding to user "name" in password,
- * from a file with lines consisting of: name:crypted_password
- * if unsucessful, returns 0
- */
-static int fgetpwnam(FILE *stream, const char *name, char *password) {
-    char * linebuf = NULL;
-    size_t linebuflen;
-    int pwdfound = 0;
-    
-    /* iterate through lines in file, until end of file */
-    while (getline(&linebuf, &linebuflen, stream) > 0) {
-	/* strsep changes its argument, make a copy */
-	char * nexttok = linebuf;
-	
-	/* first field: username */
-	char * curtok = strsep(&nexttok, ":");
-	
-	/* skip non-matchin usernames */
-	if (strcmp(curtok, name))
-	    continue;
-	
-	/* second field: password (until next colon or newline) */
-	curtok = strsep(&nexttok, ":\n");
-	
-	if (curtok) {
-	    /* we use bigcrypt pwd len, as this is just a safe maximum */
-	    strncpy(password, curtok, CRYPTED_BCPWD_LEN + 1);
-	    pwdfound = 1;
-	    break;
-	}
-    }
-    free(linebuf); /* allocated by getline */
-    return pwdfound;
-}
-
 /* expected hook for auth service */
 __attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 				   int argc, const char **argv) {
-    int retval, i;
+    int i;
     const char *name;
     char const * password;
     char const * pwdfilename = NULL;
-    char salt[12], stored_crypted_password[CRYPTED_BCPWD_LEN+1];
-    char *crypted_password;
+    char const * stored_crypted_password = NULL;
+    char const * crypted_password;
     FILE *pwdfile;
     int use_flock = 0;
     int use_delay = 1;
-    int temp_result = 0;
+    int legacy_crypt = 0;
     int debug = 0;
+    char * linebuf = NULL;
+    size_t linebuflen;
+#ifdef USE_CRYPT_R
+    struct crypt_data crypt_buf;
+#endif
     
     /* we require the pwdfile switch and argument to be present, else we don't work */
     for (i = 0; i < argc; ++i) {
@@ -162,6 +128,8 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	    use_delay = 0;
 	else if (!strcmp(argv[i], "debug"))
 	    debug = 1;
+	else if (!strcmp(argv[i], "legacy_crypt"))
+	    legacy_crypt = 1;
     }
     
 #ifdef HAVE_PAM_FAIL_DELAY
@@ -176,109 +144,92 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 	return PAM_AUTHINFO_UNAVAIL;
     }
     
-    if (debug) pam_syslog(pamh, LOG_DEBUG, "password filename extracted");
+    if (pam_get_user(pamh, &name, NULL) != PAM_SUCCESS) {
+	pam_syslog(pamh, LOG_ERR, "couldn't get username from PAM stack");
+	return PAM_AUTH_ERR;
+    }
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "username is %s", name);
     
-    /* now try to open the password file */
-    if ((pwdfile=fopen(pwdfilename,"r"))==NULL) {
+    if (!(pwdfile = fopen(pwdfilename, "r"))) {
 	pam_syslog(pamh, LOG_ALERT, "couldn't open password file %s", pwdfilename);
 	return PAM_AUTHINFO_UNAVAIL;
     }
     
     if (use_flock && lock_fd(fileno(pwdfile)) == -1) {
 	pam_syslog(pamh, LOG_ALERT, "couldn't lock password file %s", pwdfilename);
+	fclose(pwdfile);
 	return PAM_AUTHINFO_UNAVAIL;
     }
     
-    /* get user name */
-    if ((retval = pam_get_user(pamh, &name, NULL)) != PAM_SUCCESS) {
-	pam_syslog(pamh, LOG_ERR, "username not found");
-	fclose(pwdfile);
-	return retval;
+    /* get the crypted password corresponding to this user out of pwdfile */
+    while (getline(&linebuf, &linebuflen, pwdfile) > 0) {
+	/* strsep changes its argument, make a copy */
+	char * nexttok = linebuf;
+	
+	/* first field: username */
+	char * curtok = strsep(&nexttok, ":");
+	
+	/* skip non-matching usernames */
+	if (strcmp(curtok, name))
+	    continue;
+	
+	/* second field: password (until next colon or newline) */
+	if ((curtok = strsep(&nexttok, ":\n"))) {
+	    stored_crypted_password = curtok;
+	    break;
+	}
+    }
+    fclose(pwdfile);
+    /* we keep linebuf (allocated by getline), stored_crypted_password is pointing into it */
+
+    if (!stored_crypted_password)
+	if (debug) pam_syslog(pamh, LOG_ERR, "user not found in password database");
+    
+    if (stored_crypted_password && !strlen(stored_crypted_password)) {
+	if (debug) pam_syslog(pamh, LOG_DEBUG, "user has empty password field");
+	free(linebuf);
+	return flags & PAM_DISALLOW_NULL_AUTHTOK ? PAM_AUTH_ERR : PAM_SUCCESS;
     }
     
-    if (debug) pam_syslog(pamh, LOG_DEBUG, "username is %s", name);
-    
-    if ((retval = pam_get_authtok(pamh, PAM_AUTHTOK, &password, NULL)) != PAM_SUCCESS) {
-	pam_syslog(pamh, LOG_ERR, "auth token not found");
-	fclose(pwdfile);
-	return retval;
-    }
-    
-    /* now crypt password and compare to the user entry in the password file */
-    /* first make sure password is long enough -- may I do this? */
-    if (strlen(password)<2 || password==NULL) {
-	pam_syslog(pamh, LOG_ERR, "password too short or NULL");
-	fclose(pwdfile);
+    if (pam_get_authtok(pamh, PAM_AUTHTOK, &password, NULL) != PAM_SUCCESS) {
+	pam_syslog(pamh, LOG_ERR, "couldn't get password from PAM stack");
+	free(linebuf);
 	return PAM_AUTH_ERR;
     }
     
-    /* get the crypted password corresponding to this user */
-    if (!fgetpwnam(pwdfile, name, stored_crypted_password)) {
-	pam_syslog(pamh, LOG_ERR, "user not found in password database");
-	fclose(pwdfile);
-	return PAM_AUTHINFO_UNAVAIL;
+    if (!stored_crypted_password) {
+	free(linebuf);
+	return PAM_USER_UNKNOWN;
     }
     
     if (debug) pam_syslog(pamh, LOG_DEBUG, "got crypted password == '%s'", stored_crypted_password);
     
-    
-    temp_result = 0;
-    
-    /* Extract the salt and set the passwd length, depending on MD5 or DES */
-    if (strncmp(stored_crypted_password, "$1$", 3) == 0) {
-	if (debug) pam_syslog(pamh, LOG_ERR, "password hash type is 'md5'");
-	/* get out the salt into "salt" */
-	strncpy(salt, stored_crypted_password, 11);
-	salt[11] = '\0';
-	stored_crypted_password[CRYPTED_MD5PWD_LEN] = '\0';
-	/* try both md5 crypts */
-	crypted_password = Goodcrypt_md5(password, salt);
-	if (strcmp(crypted_password, stored_crypted_password) == 0)
-	{
-	    temp_result = 1;
-	}
-	else
-	{
-	    crypted_password = Brokencrypt_md5(password, salt);
-	    if (strcmp(crypted_password, stored_crypted_password) == 0)
-	    {
-		temp_result = 1;
-	    }
-	}
-    } else {
-	/* get the salt out into "salt" */
-	strncpy(salt, stored_crypted_password, 2);
-	salt[2] = '\0';
-	stored_crypted_password[CRYPTED_BCPWD_LEN] = '\0';
-
-	if (strlen(stored_crypted_password) <= CRYPTED_DESPWD_LEN) {
-	    if (debug) pam_syslog(pamh, LOG_DEBUG, "password hash type is 'crypt'");
-	    crypted_password = crypt(password, salt);
-	} else {
-	    if (debug) pam_syslog(pamh, LOG_DEBUG, "password hash type is 'bigcrypt'");
-	    crypted_password = bigcrypt(password, salt);
-	}
-
-	if (strcmp(crypted_password, stored_crypted_password) == 0)
-	{
-	    temp_result = 1;
-	}
+#ifdef USE_CRYPT_R
+    crypt_buf.initialized = 0;
+    if (!(crypted_password = crypt_r(password, stored_crypted_password, &crypt_buf))) {
+#else
+    if (!(crypted_password = crypt(password, stored_crypted_password))) {
+#endif
+	pam_syslog(pamh, LOG_ERR, "crypt() failed");
+	free(linebuf);
+	return PAM_AUTH_ERR;
     }
     
-    if (debug) pam_syslog(pamh, LOG_DEBUG, "user password crypted is '%s'", crypted_password);
-    
-    /* if things don't match up, complain */
-    if (!temp_result) 
-    {
+    if (legacy_crypt && strcmp(crypted_password, stored_crypted_password)) {
+	if (!strncmp(stored_crypted_password, "$1$", 3))
+	    crypted_password = Brokencrypt_md5(password, stored_crypted_password);
+	else
+	    crypted_password = bigcrypt(password, stored_crypted_password);
+    }
+
+    if (strcmp(crypted_password, stored_crypted_password)) {
 	pam_syslog(pamh, LOG_NOTICE, "wrong password for user %s", name);
-	fclose(pwdfile);
+	free(linebuf);
 	return PAM_AUTH_ERR;
     }
     
     if (debug) pam_syslog(pamh, LOG_DEBUG, "passwords match");
-    
-    /* we've gotten here, i.e. authentication was sucessful! */
-    fclose(pwdfile);
+    free(linebuf);
     return PAM_SUCCESS;
 }
 
