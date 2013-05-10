@@ -24,10 +24,11 @@
  * Andy Phillips <atp@mssl.ucl.ac.uk>
  */
 
+#define _XOPEN_SOURCE
+#include <unistd.h>
 #include <string.h>
 
-char *crypt(const char *key, const char *salt);
-char *bigcrypt(const char *key, const char *salt);
+#include "bigcrypt.h"
 
 /*
  * Max cleartext password length in segments of 8 characters this

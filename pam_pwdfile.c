@@ -42,6 +42,18 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef USE_CRYPT_R
+#define _GNU_SOURCE
+#include <crypt.h>
+#else
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
+#endif
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE
+#endif
+#endif
+
 #include <features.h>
 #include <syslog.h>
 #include <stdio.h>
@@ -62,8 +74,7 @@
 #include <security/pam_ext.h>
 
 #include "md5.h"
-extern char *crypt(const char *key, const char *salt);
-extern char *bigcrypt(const char *key, const char *salt);
+#include "bigcrypt.h"
 
 #define CRYPTED_DESPWD_LEN 13
 #define CRYPTED_MD5PWD_LEN 34
