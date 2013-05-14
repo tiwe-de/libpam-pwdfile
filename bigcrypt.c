@@ -24,7 +24,7 @@
  * Andy Phillips <atp@mssl.ucl.ac.uk>
  */
 
-#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
 #include <unistd.h>
 #include <string.h>
 
@@ -36,80 +36,39 @@
  * password).
  */
 
-#define MAX_PASS_LEN       16
+#define MAX_SEGMENTS       16
 #define SEGMENT_SIZE       8
 #define SALT_SIZE          2
-#define KEYBUF_SIZE        ((MAX_PASS_LEN*SEGMENT_SIZE)+SALT_SIZE)
 #define ESEGMENT_SIZE      11
-#define CBUF_SIZE          ((MAX_PASS_LEN*ESEGMENT_SIZE)+SALT_SIZE+1)
 
-char *bigcrypt(const char *key, const char *salt)
-{
-	static char dec_c2_cryptbuf[CBUF_SIZE];		/* static storage area */
+char *bigcrypt(char const * key, char const * salt) {
+	static char outbuf[MAX_SEGMENTS * ESEGMENT_SIZE + SALT_SIZE + 1];	/* static storage area */
 
-	unsigned long int keylen, n_seg, j;
-	char *cipher_ptr, *plaintext_ptr, *tmp_ptr, *salt_ptr;
-	char keybuf[KEYBUF_SIZE + 1];
+	unsigned char n_seg, seg;
+	char * outptr;
 
-	/* reset arrays */
-	memset(keybuf, 0, KEYBUF_SIZE + 1);
-	memset(dec_c2_cryptbuf, 0, CBUF_SIZE);
+	/* ensure NUL-termination */
+	memset(outbuf, 0, sizeof(outbuf));
 
-	/* fill KEYBUF_SIZE with key */
-	strncpy(keybuf, key, KEYBUF_SIZE);
-
-	/* deal with case that we are doing a password check for a
-	   conventially encrypted password: the salt will be
-	   SALT_SIZE+ESEGMENT_SIZE long. */
-	if (strlen(salt) == (SALT_SIZE + ESEGMENT_SIZE))
-		keybuf[SEGMENT_SIZE] = '\0';	/* terminate password early(?) */
-
-	keylen = strlen(keybuf);
-
-	if (!keylen) {
+	if (strlen(salt) == (SALT_SIZE + ESEGMENT_SIZE)) /* conventional crypt */
 		n_seg = 1;
-	} else {
-		/* work out how many segments */
-		n_seg = 1 + ((keylen - 1) / SEGMENT_SIZE);
+	else if (key[0] == '\0')
+		n_seg = 1;
+	else
+		n_seg = (strnlen(key, MAX_SEGMENTS * SEGMENT_SIZE) + SEGMENT_SIZE - 1) / SEGMENT_SIZE;
+
+	/* first block is special and just traditional crypt() */
+	outptr = outbuf;
+	strncpy(outptr, crypt(key, salt), SALT_SIZE + ESEGMENT_SIZE);
+
+	for (seg = 1, outptr += SALT_SIZE; seg < n_seg; ++seg) {
+		/* subsequent blocks use the previous output block for salt input */
+		salt = outptr;
+		key += SEGMENT_SIZE;
+		outptr += ESEGMENT_SIZE;
+		/* and omit the salt on output */
+		strncpy(outptr, crypt(key, salt) + SALT_SIZE, ESEGMENT_SIZE);
 	}
 
-	if (n_seg > MAX_PASS_LEN)
-		n_seg = MAX_PASS_LEN;	/* truncate at max length */
-
-	/* set up some pointers */
-	cipher_ptr = dec_c2_cryptbuf;
-	plaintext_ptr = keybuf;
-
-	/* do the first block with supplied salt */
-	tmp_ptr = crypt(plaintext_ptr, salt);	/* libc crypt() */
-
-	/* and place in the static area */
-	strncpy(cipher_ptr, tmp_ptr, 13);
-	cipher_ptr += ESEGMENT_SIZE + SALT_SIZE;
-	plaintext_ptr += SEGMENT_SIZE;	/* first block of SEGMENT_SIZE */
-
-	/* change the salt (1st 2 chars of previous block) - this was found
-	   by dowsing */
-
-	salt_ptr = cipher_ptr - ESEGMENT_SIZE;
-
-	/* so far this is identical to "return crypt(key, salt);", if
-	   there is more than one block encrypt them... */
-
-	if (n_seg > 1) {
-		for (j = 2; j <= n_seg; j++) {
-
-			tmp_ptr = crypt(plaintext_ptr, salt_ptr);
-
-			/* skip the salt for seg!=0 */
-			strncpy(cipher_ptr, (tmp_ptr + SALT_SIZE), ESEGMENT_SIZE);
-
-			cipher_ptr += ESEGMENT_SIZE;
-			plaintext_ptr += SEGMENT_SIZE;
-			salt_ptr = cipher_ptr - ESEGMENT_SIZE;
-		}
-	}
-
-	/* this is the <NUL> terminated encrypted password */
-	return dec_c2_cryptbuf;
+	return outbuf;
 }
