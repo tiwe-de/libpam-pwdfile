@@ -1,13 +1,9 @@
 /* pam_pwdfile.c copyright 1999-2003 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.18 2003-12-20 19:21:19 cpbotha Exp $
- * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.99
- *
  * Copyright (c) Charl P. Botha, 1999-2003. All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without

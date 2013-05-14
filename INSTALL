@@ -1,5 +1,4 @@
 INSTALL for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: INSTALL,v 1.4 2001-04-17 21:18:15 cpbotha Exp $
 ---------------------------------------------------------------------------
 
 This file is the quick and dirty on how to get pam_pwdfile compiled on your
