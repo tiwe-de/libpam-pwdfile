@@ -1,4 +1,4 @@
-PAM_LIB_DIR ?= $(DESTDIR)/lib/security
+PAM_LIB_DIR ?= /lib/security
 INSTALL ?= install
 CFLAGS ?= -O2 -g -Wall -Wformat-security
 
@@ -27,8 +27,8 @@ md5_crypt_broken.o: md5_crypt.c
 
 
 install: $(LIBSHARED)
-	$(INSTALL) -m 0755 -d $(PAM_LIB_DIR)
-	$(INSTALL) -m 0755 $(LIBSHARED) $(PAM_LIB_DIR)
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(PAM_LIB_DIR)
+	$(INSTALL) -m 0755 $(LIBSHARED) $(DESTDIR)$(PAM_LIB_DIR)
 
 clean:
 	$(RM) *.o *.so
