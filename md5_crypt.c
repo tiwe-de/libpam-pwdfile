@@ -1,6 +1,4 @@
 /*
- * $Id: md5_crypt.c,v 1.1 2002/05/11 14:42:35 cpbotha Exp $
- *
  * ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 42):
  * <phk@login.dknet.dk> wrote this file.  As long as you retain this notice you

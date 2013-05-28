@@ -1,48 +1,38 @@
-README for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
-$Id: README,v 1.12 2003/12/20 19:21:19 cpbotha Exp $
----------------------------------------------------------------------------
+This pam module provides the authentication service using an own set of user/password pairs.
 
-This is version 0.99 of pam_pwdfile.
+CONFIGURATION
+=============
 
-This pam module can be used for the authentication service only, in cases
-where one wants to use a different set of passwords than those in the main
-system password database.  E.g. in our case we have an imap server running,
-and prefer to keep the imap passwords different from the system passwords
-for security reasons.
+simple PAM config
+-----------------
 
-The /etc/pam.d/imap looks like this (e.g.)
-#%PAM-1.0
-auth       required	/lib/security/pam_pwdfile.so pwdfile /etc/imap.passwd
-account    required	/lib/security/pam_pwdb.so
+Just add/change the config file for service to contain the line:
 
-At the moment the only parameters that pam_pwdfile.so parses for is
-"pwdfile", followed by the name of the ASCII password database, as in the
-above example.  Also, thanks to Jacob Schroeder <jacob@quantec.de>,
-pam_pwdfile now supports password file locking.  Adding a "flock" parameter
-activates this feature: pam_pwdfile uses and honours flock() file locking on
-the specified password file.  Specifying "noflock" or no flock-type
-parameter at all deactivates this feature.
+auth		required	pam_pwdfile.so pwdfile=/path/to/passwd_file
 
-Example:
-auth  required /lib/security/pam_pwdfile.so pwdfile /etc/blah.passwd flock
+If your service does more with PAM than auth there will be a fallback to the service "other".
+If that is not what you want, you can use pam_permit.so or pam_deny.so for that:
 
-Like other PAM modules, pam_pwdfile causes a 2 second delay when an
-incorrect password is supplied.  This is too discourage brute force testing;
-however, this behaviour can be disabled with a "nodelay" parameter.  Thanks
-to Ethan Benson for this patch.
+account		required	pam_permit.so
+session		required	pam_permit.so
+password	required	pam_deny.so
 
-The ASCII password file is simply a list of lines, each looking like this:
-username:crypted_passwd[13] in the case of vanilla crypted passwords and
-username:crypted_passwd[34] in the case of MD5 crypted passwords.  The
-latter is thanks to Warwick Duncan <warwick@chemeng.uct.ac.za>.  pam_pwdfile
-also handles bigcrypt passwords.
 
-Warwick has also written a utility for managing the password files that
-pam_pwdfile uses.  Please see: http://eclipse.che.uct.ac.za/chpwdfile/
+options
+-------
 
-Note that we still expect users to have accounts in the usual place, as we
-make use of the pam_pwdb.so module for the account service.  This module is
-just so that one can have multiple sets of passwords for different services,
-e.g. with our /etc/imap.passwd.  It is however possible with certain
-applications patched for pam (Cyrus IMAP server e.g.) that one does not need
-the users to exist in the system database.
+* pwdfile=<file>
+* debug: produce a bit of debug output
+* nodelay: don't tell the PAM stack to cause a delay on auth failure
+* flock: use a shared (read) advisory lock on pwdfile, you should better move new versions into place instead
+* legacy_crypt: turns on bigcrypt and "broken md5_crypt", you will only need that if you use password hashes from another system that uses those algorithms
+
+
+PASSWORD FILE
+=============
+
+The password file basically looks like passwd(5): one line for each user with two or more colon-separated fields.
+First field contains the username, the second the crypt()ed password.
+Other field are optional.
+
+crypt()ed passwords in various formats can be generated with mkpasswd from the whois package.

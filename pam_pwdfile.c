@@ -1,13 +1,9 @@
 /* pam_pwdfile.c copyright 1999-2003 by Charl P. Botha <cpbotha@ieee.org>
  *
- * $Id: pam_pwdfile.c,v 1.18 2003/12/20 19:21:19 cpbotha Exp $
- * 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * version 0.99
- *
  * Copyright (c) Charl P. Botha, 1999-2003. All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +38,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef USE_CRYPT_R
+#define _GNU_SOURCE
+#include <crypt.h>
+#else
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
+#endif
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE
+#endif
+#endif
+
 #include <features.h>
 #include <syslog.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,44 +61,16 @@
 #include <sys/wait.h>
 #include <sys/file.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <security/pam_appl.h>
 
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
+#include <security/pam_ext.h>
 
 #include "md5.h"
-extern char *crypt(const char *key, const char *salt);
-extern char *bigcrypt(const char *key, const char *salt);
-
-#define PWDF_PARAM "pwdfile"
-#define FLOCK_PARAM "flock"
-#define NODELAY_PARAM "nodelay"
-#define PWDFN_LEN 256
-#define CRYPTED_DESPWD_LEN 13
-#define CRYPTED_MD5PWD_LEN 34
-#define CRYPTED_BCPWD_LEN 178
-
-#ifdef DEBUG
-# define D(a) a;
-#else
-# define D(a) {}
-#endif
-
-/* prototypes */
-int converse(pam_handle_t *, int, struct pam_message **, struct pam_response **);
-int _set_auth_tok(pam_handle_t *, int, int, const char **);
-
-/* logging function ripped from pam_listfile.c */
-static void _pam_log(int err, const char *format, ...) {
-    va_list args;
-    
-    va_start(args, format);
-    openlog("pam_pwdfile", LOG_CONS|LOG_PID, LOG_AUTH);
-    vsyslog(err, format, args);
-    va_end(args);
-    closelog();
-}
+#include "bigcrypt.h"
 
 static int lock_fd(int fd) {
     int delay;
@@ -110,304 +89,148 @@ static int lock_fd(int fd) {
     return -1;
 }
 
-/* this function ripped from pam_unix/support.c */
-int converse(	pam_handle_t *pamh,
-		int nargs, 
-		struct pam_message **message,
-		struct pam_response **response	) {
-    int retval;
-    struct pam_conv *conv;
-    
-    retval = pam_get_item(	pamh, PAM_CONV,  (const void **) &conv ) ; 
-    if ( retval == PAM_SUCCESS ) {
-	retval = conv->conv( 	nargs,  
-				( const struct pam_message ** ) message, 
-				response, 
-				conv->appdata_ptr );
-    }
-    return retval;
-}
-
-/* this function ripped from pam_unix/support.c */
-int _set_auth_tok(	pam_handle_t *pamh, 
-			int flags, int argc, 
-			const char **argv	) {
-    int	retval;
-    char	*p;
-    
-    struct pam_message msg[1],*pmsg[1];
-    struct pam_response *resp;
-    
-    /* set up conversation call */
-    
-    pmsg[0] = &msg[0];
-    msg[0].msg_style = PAM_PROMPT_ECHO_OFF;
-    msg[0].msg = "Password: ";
-    resp = NULL;
-    
-    if ( ( retval = converse( pamh, 1 , pmsg, &resp ) ) != PAM_SUCCESS ) 
-	return retval;
-    
-    if ( resp ) 
-    {
-	if ( ( flags & PAM_DISALLOW_NULL_AUTHTOK ) && 
-	     resp[0].resp == NULL ) 
-	{
-	    free( resp );
-	    return PAM_AUTH_ERR;
-	}
-	
-	p = resp[ 0 ].resp;
-	
-	/* This could be a memory leak. If resp[0].resp 
-	 is malloc()ed, then it has to be free()ed! 
-	 -- alex 
-	 */
-	
-	resp[ 0 ].resp = NULL; 		  				  
-	
-    } 
-    else 
-	return PAM_CONV_ERR;
-    
-    free( resp );
-    pam_set_item( pamh, PAM_AUTHTOK, p );
-    return PAM_SUCCESS;
-}
-
-
-/* puts the crypted password corresponding to user "name" in password,
- * from a file with lines consisting of: name:crypted_password
- * if unsucessful, returns 0
- */
-static int fgetpwnam(FILE *stream, const char *name, char *password) {
-    char tempLine[256], *tpointer, *curname, *curpass, *fgr;
-    int loopdone, pwdfound;
-    int len;
-    
-    /* go to beginning of file */
-    rewind(stream);
-    /* some control variables */
-    loopdone = pwdfound = 0;
-    /* fgets should do this, but we make sure */
-    tempLine[255] = '\0';
-    /* iterate through lines in file, until end of file */
-    do {
-	/* get the current line */
-	fgr = fgets(tempLine,255,stream);
-	/* if it's valid, go on */
-	if ( fgr != NULL) {
-	    /* first get the username out */
-	    tpointer = tempLine;
-	    curname = strsep(&tpointer,":");
-	    /* check to see if it's the right one */
-	    if (strcmp(curname,name)==0) {
-		/* at least we know our loop is done */
-		loopdone = 1;
-		/* remove possible trailing newline */
-		len = strlen(tpointer);
-		if (tpointer[len - 1] == '\n')
-		    tpointer[len - 1] = '\0';
-		/* get the password and put it in its place */
-		curpass = strsep(&tpointer,":");
-		if (curpass != NULL) {
-		    /* we use bigcrypt pwd len, as this is just a safe maximum */
-		    strncpy(password,curpass,CRYPTED_BCPWD_LEN+1);
-		    pwdfound = 1;
-		} /* if (curpass... */
-	    } /* if (strcmp(curname... */
-	} /* if (tempLine... */
-    } while (fgr != NULL);
-    return pwdfound;
-}
-
 /* expected hook for auth service */
+__attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
 				   int argc, const char **argv) {
-    int retval, pcnt, pwdfilename_found;
+    int i;
     const char *name;
-    char *password;
-    char pwdfilename[PWDFN_LEN];
-    char salt[12], stored_crypted_password[CRYPTED_BCPWD_LEN+1];
-    char *crypted_password;
+    char const * password;
+    char const * pwdfilename = NULL;
+    char const * stored_crypted_password = NULL;
+    char const * crypted_password;
     FILE *pwdfile;
     int use_flock = 0;
     int use_delay = 1;
-    int temp_result = 0;
+    int legacy_crypt = 0;
+    int debug = 0;
+    char * linebuf = NULL;
+    size_t linebuflen;
+#ifdef USE_CRYPT_R
+    struct crypt_data crypt_buf;
+#endif
     
     /* we require the pwdfile switch and argument to be present, else we don't work */
-    /* pcnt is the parameter counter variable for iterating through argv */
-    pcnt = pwdfilename_found = 0;
-    do {
-	/* see if the current parameter looks like "pwdfile" */
-	if (strcmp(argv[pcnt],PWDF_PARAM)==0) {
-	    /* if argv is long enough, grab the subsequent parameter */
-	    if (pcnt+1 < argc) {
-		/* make sure we can't overflow */
-		strncpy(pwdfilename,argv[++pcnt],PWDFN_LEN);
-		/* indicate that we've found it */
-		pwdfilename_found = 1;
-	    }
-	    /* also check for "pwdfile=blah" */
-	} else if (strncmp(argv[pcnt],PWDF_PARAM "=",sizeof(PWDF_PARAM "=")-1)==0) {
-	    /* make sure we can't overflow */
-	    strncpy(pwdfilename,argv[pcnt]+sizeof(PWDF_PARAM),PWDFN_LEN);
-	    /* indicate that we've found it */
-	    pwdfilename_found = 1;
-	} else if (strcmp(argv[pcnt],FLOCK_PARAM)==0) {
-	    /* we have a "flock" parameter */
+    for (i = 0; i < argc; ++i) {
+	if (!strcmp(argv[i], "pwdfile") && i + 1 < argc)
+	    pwdfilename = argv[++i];
+	else if (!strncmp(argv[i], "pwdfile=", strlen("pwdfile=")))
+	    pwdfilename = argv[i] + strlen("pwdfile=");
+	else if (!strcmp(argv[i], "flock"))
 	    use_flock = 1;
-	} else if (strcmp(argv[pcnt],"no" FLOCK_PARAM)==0) {
-	    /* or a "noflock" parameter */
+	else if (!strcmp(argv[i], "noflock"))
 	    use_flock = 0;
-	} else if (strcmp(argv[pcnt],NODELAY_PARAM)==0) {
-	    /* no delay on authentication failure */
+	else if (!strcmp(argv[i], "nodelay"))
 	    use_delay = 0;
-	}
-	
-    } while (++pcnt < argc);
+	else if (!strcmp(argv[i], "debug"))
+	    debug = 1;
+	else if (!strcmp(argv[i], "legacy_crypt"))
+	    legacy_crypt = 1;
+    }
     
 #ifdef HAVE_PAM_FAIL_DELAY
     if (use_delay) {
-	D(("setting delay"));
-	(void) pam_fail_delay(pamh, 2000000);   /* 2 sec delay for on failure */
+	if (debug) pam_syslog(pamh, LOG_DEBUG, "setting fail delay");
+	(void) pam_fail_delay(pamh, 2000000);   /* 2 sec */
     }
 #endif
     
-    /* for some or other reason, the password file wasn't specified */
-    if (!pwdfilename_found) {
-	_pam_log(LOG_ERR,"password file name not specified");
+    if (!pwdfilename) {
+	pam_syslog(pamh, LOG_ERR, "password file name not specified");
 	return PAM_AUTHINFO_UNAVAIL;
     }
     
-    /* DEBUG */
-    D(_pam_log(LOG_ERR, "password filename extracted"));
+    if (pam_get_user(pamh, &name, NULL) != PAM_SUCCESS) {
+	pam_syslog(pamh, LOG_ERR, "couldn't get username from PAM stack");
+	return PAM_AUTH_ERR;
+    }
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "username is %s", name);
     
-    /* now try to open the password file */
-    if ((pwdfile=fopen(pwdfilename,"r"))==NULL) {
-	_pam_log(LOG_ERR,"couldn't open password file %s",pwdfilename);
+    if (!(pwdfile = fopen(pwdfilename, "r"))) {
+	pam_syslog(pamh, LOG_ALERT, "couldn't open password file %s", pwdfilename);
 	return PAM_AUTHINFO_UNAVAIL;
     }
     
-    /* set a lock on the password file */
     if (use_flock && lock_fd(fileno(pwdfile)) == -1) {
-	_pam_log(LOG_ERR,"couldn't lock password file %s",pwdfilename);
-	return PAM_AUTHINFO_UNAVAIL;
-    }
-    
-    /* get user name */
-    if ((retval = pam_get_user(pamh,&name,"login: ")) != PAM_SUCCESS) {
-	_pam_log(LOG_ERR, "username not found");
-	fclose(pwdfile);
-	return retval;
-    }
-    
-    
-    /* DEBUG */
-    D(_pam_log(LOG_ERR,"username is %s", name));
-    
-    /* get password - code from pam_unix_auth.c */
-    pam_get_item(pamh, PAM_AUTHTOK, (void *)&password);
-    if (!password) {
-	retval = _set_auth_tok(pamh, flags, argc, argv);
-	if (retval!=PAM_SUCCESS) {
-	    fclose(pwdfile);
-	    return retval;
-	}
-    }
-    pam_get_item(pamh, PAM_AUTHTOK, (void *)&password);
-    
-    if ((retval = pam_get_item(pamh, PAM_AUTHTOK, (void *)&password)) != PAM_SUCCESS) {
-	_pam_log(LOG_ERR, "auth token not found");
-	fclose(pwdfile);
-	return retval;
-    }
-    
-    /* DEBUG */
-    D(_pam_log(LOG_ERR,"got password from user", password));
-    
-    /* now crypt password and compare to the user entry in the password file */
-    /* first make sure password is long enough -- may I do this? */
-    if (strlen(password)<2 || password==NULL) {
-	_pam_log(LOG_ERR,"password too short or NULL");
-	fclose(pwdfile);
-	return PAM_AUTH_ERR;
-    }
-    
-    /* get the crypted password corresponding to this user */
-    if (!fgetpwnam(pwdfile, name, stored_crypted_password)) {
-	_pam_log(LOG_ERR,"user not found in password database");
+	pam_syslog(pamh, LOG_ALERT, "couldn't lock password file %s", pwdfilename);
 	fclose(pwdfile);
 	return PAM_AUTHINFO_UNAVAIL;
     }
     
-    /* DEBUG */
-    D(_pam_log(LOG_ERR,"got crypted password == '%s'", stored_crypted_password));
-    
-    
-    temp_result = 0;
-    
-    /* Extract the salt and set the passwd length, depending on MD5 or DES */
-    if (strncmp(stored_crypted_password, "$1$", 3) == 0) {
-	D(_pam_log(LOG_ERR,"password hash type is 'md5'"));
-	/* get out the salt into "salt" */
-	strncpy(salt, stored_crypted_password, 11);
-	salt[11] = '\0';
-	stored_crypted_password[CRYPTED_MD5PWD_LEN] = '\0';
-	/* try both md5 crypts */
-	crypted_password = Goodcrypt_md5(password, salt);
-	if (strcmp(crypted_password, stored_crypted_password) == 0)
-	{
-	    temp_result = 1;
-	}
-	else
-	{
-	    crypted_password = Brokencrypt_md5(password, salt);
-	    if (strcmp(crypted_password, stored_crypted_password) == 0)
-	    {
-		temp_result = 1;
-	    }
-	}
-    } else {
-	/* get the salt out into "salt" */
-	strncpy(salt, stored_crypted_password, 2);
-	salt[2] = '\0';
-	stored_crypted_password[CRYPTED_BCPWD_LEN] = '\0';
-
-	if (strlen(stored_crypted_password) <= CRYPTED_DESPWD_LEN) {
-	    D(_pam_log(LOG_ERR,"password hash type is 'crypt'"));
-	    crypted_password = crypt(password, salt);
-	} else {
-	    D(_pam_log(LOG_ERR,"password hash type is 'bigcrypt'"));
-	    crypted_password = bigcrypt(password, salt);
-	}
-
-	if (strcmp(crypted_password, stored_crypted_password) == 0)
-	{
-	    temp_result = 1;
+    /* get the crypted password corresponding to this user out of pwdfile */
+    while (getline(&linebuf, &linebuflen, pwdfile) > 0) {
+	/* strsep changes its argument, make a copy */
+	char * nexttok = linebuf;
+	
+	/* first field: username */
+	char * curtok = strsep(&nexttok, ":");
+	
+	/* skip non-matching usernames */
+	if (strcmp(curtok, name))
+	    continue;
+	
+	/* second field: password (until next colon or newline) */
+	if ((curtok = strsep(&nexttok, ":\n"))) {
+	    stored_crypted_password = curtok;
+	    break;
 	}
     }
-    
-    /* DEBUG */
-    D(_pam_log(LOG_ERR,"user password crypted is '%s'", crypted_password));
-    
-    /* if things don't match up, complain */
-    if (!temp_result) 
-    {
-	_pam_log(LOG_ERR,"wrong password for user %s",name);
-	fclose(pwdfile);
-	return PAM_AUTH_ERR;
-    }
-    
-    /* DEBUG */
-    D(_pam_log(LOG_ERR,"passwords match"));
-    
-    /* we've gotten here, i.e. authentication was sucessful! */
     fclose(pwdfile);
+    /* we keep linebuf (allocated by getline), stored_crypted_password is pointing into it */
+
+    if (!stored_crypted_password)
+	if (debug) pam_syslog(pamh, LOG_ERR, "user not found in password database");
+    
+    if (stored_crypted_password && !strlen(stored_crypted_password)) {
+	if (debug) pam_syslog(pamh, LOG_DEBUG, "user has empty password field");
+	free(linebuf);
+	return flags & PAM_DISALLOW_NULL_AUTHTOK ? PAM_AUTH_ERR : PAM_SUCCESS;
+    }
+    
+    if (pam_get_authtok(pamh, PAM_AUTHTOK, &password, NULL) != PAM_SUCCESS) {
+	pam_syslog(pamh, LOG_ERR, "couldn't get password from PAM stack");
+	free(linebuf);
+	return PAM_AUTH_ERR;
+    }
+    
+    if (!stored_crypted_password) {
+	free(linebuf);
+	return PAM_USER_UNKNOWN;
+    }
+    
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "got crypted password == '%s'", stored_crypted_password);
+    
+#ifdef USE_CRYPT_R
+    crypt_buf.initialized = 0;
+    if (!(crypted_password = crypt_r(password, stored_crypted_password, &crypt_buf))) {
+#else
+    if (!(crypted_password = crypt(password, stored_crypted_password))) {
+#endif
+	pam_syslog(pamh, LOG_ERR, "crypt() failed");
+	free(linebuf);
+	return PAM_AUTH_ERR;
+    }
+    
+    if (legacy_crypt && strcmp(crypted_password, stored_crypted_password)) {
+	if (!strncmp(stored_crypted_password, "$1$", 3))
+	    crypted_password = Brokencrypt_md5(password, stored_crypted_password);
+	else
+	    crypted_password = bigcrypt(password, stored_crypted_password);
+    }
+
+    if (strcmp(crypted_password, stored_crypted_password)) {
+	pam_syslog(pamh, LOG_NOTICE, "wrong password for user %s", name);
+	free(linebuf);
+	return PAM_AUTH_ERR;
+    }
+    
+    if (debug) pam_syslog(pamh, LOG_DEBUG, "passwords match");
+    free(linebuf);
     return PAM_SUCCESS;
 }
 
 /* another expected hook */
+__attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags, 
 			      int argc, const char **argv)
 {
@@ -425,3 +248,4 @@ struct pam_module _pam_listfile_modstruct = {
 	NULL,
 };
 #endif
+/* vim:set ts=8 sw=4: */
