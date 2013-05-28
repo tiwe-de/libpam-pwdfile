@@ -1,3 +1,16 @@
+libpam-pwdfile (0.100-1) unstable; urgency=low
+
+  * add gbp.conf
+  * drop stuff in debian/ not needed anymore:
+    - patches
+    - Makefile
+    - README.Debian
+    - source.lintian-overrides
+  * add watch file
+  * bump Standards-Version, add Vcs-*, update Homepage
+
+ -- Timo Weingärtner <timo@tiwe.de>  Wed, 29 May 2013 01:26:12 +0200
+
 libpam-pwdfile (0.99-5) unstable; urgency=low
 
   * New Maintainer (Closes: #588877)
