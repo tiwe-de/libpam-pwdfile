@@ -3,10 +3,4 @@
 %:
 	dh $@
 
-override_dh_auto_build:
-	$(MAKE) -f debian/Makefile
-
-override_dh_auto_clean:
-	$(MAKE) -f debian/Makefile extraclean
-
 override_dh_auto_install:
