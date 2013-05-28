@@ -2,9 +2,11 @@ Source: libpam-pwdfile
 Section: admin
 Priority: extra
 Maintainer: Timo Weingärtner <timo@tiwe.de>
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 Build-Depends: debhelper (>= 9), dh-exec (>=0.3), libpam0g-dev
-Homepage: http://code.google.com/p/pam-pwdfile/
+Homepage: https://github.com/tiwe-de/libpam-pwdfile
+Vcs-Browser: https://github.com/tiwe-de/libpam-pwdfile/tree/debian
+Vcs-Git: git://github.com/tiwe-de/libpam-pwdfile.git -b debian
 
 Package: libpam-pwdfile
 Architecture: any
