@@ -201,10 +201,11 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     
 #ifdef USE_CRYPT_R
     crypt_buf.initialized = 0;
-    if (!(crypted_password = crypt_r(password, stored_crypted_password, &crypt_buf))) {
+    if (!(crypted_password = crypt_r(password, stored_crypted_password, &crypt_buf)))
 #else
-    if (!(crypted_password = crypt(password, stored_crypted_password))) {
+    if (!(crypted_password = crypt(password, stored_crypted_password)))
 #endif
+    {
 	pam_syslog(pamh, LOG_ERR, "crypt() failed");
 	free(linebuf);
 	return PAM_AUTH_ERR;
