@@ -50,7 +50,6 @@
 #endif
 #endif
 
-#include <features.h>
 #include <syslog.h>
 #include <stdio.h>
 #include <stdlib.h>
