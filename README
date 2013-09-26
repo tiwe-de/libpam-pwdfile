@@ -33,6 +33,6 @@ PASSWORD FILE
 
 The password file basically looks like passwd(5): one line for each user with two or more colon-separated fields.
 First field contains the username, the second the crypt()ed password.
-Other field are optional.
+Other fields are optional.
 
 crypt()ed passwords in various formats can be generated with mkpasswd from the whois package.
