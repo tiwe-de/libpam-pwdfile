@@ -32,3 +32,6 @@ install: $(LIBSHARED)
 
 clean:
 	$(RM) *.o *.so
+
+changelog-from-git: changelog
+	{ git log --decorate $(shell head -1 changelog | cut -d\  -f2).. | vipe; echo; cat changelog; } | sponge changelog
