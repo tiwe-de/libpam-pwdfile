@@ -1,5 +1,187 @@
-changelog for pam_pwdfile PAM module - Charl P. Botha <cpbotha@ieee.org>
----------------------------------------------------------------------------
+commit 6946f4bd3102d677d9ce43d4c48ed6bec2b13a31
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-09-29 15:50:21 +0200
+
+    update copyright
+    
+    also fix spelling error "GNU Public License"
+
+commit 183200793e5aec74f73b21bd96d46b447da64f11
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-09-28 16:35:58 +0200
+
+    Makefile: add target changelog-from-git
+    
+    needs moreutils
+
+commit 5e5588cd1edfbab1889537b93ae13b159f76caff
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-09-26 16:29:26 +0200
+
+    README: describe legacy_crypt in more detail
+
+commit 235369330e1c1366e5c7cb31561cdb673703ad58
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-09-26 16:29:11 +0200
+
+    fix typo in README
+
+commit 090a8585370c7857a193467fc057828b82ec358f
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-06-01 00:15:00 +0200
+
+    move opening brace out of ifdef to make code folding work
+
+commit 4964a685e75c75d662bb0d4f1bb3fd126f49eca2
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-06-01 00:14:07 +0200
+
+    don't include features.h
+
+commit 201e799f7a2fcba3af2c9214f25545460ef9b08a (tag: v0.100)
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-27 21:10:18 +0200
+
+    rework documentation
+    
+    remove stuff in contrib, it is outdated or explained in the service's
+    documentation
+
+commit da52bf9630a077d90e1338d818a3e179367058c4
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-27 21:08:02 +0200
+
+    separate DESTDIR and PAM_LIB_DIR
+
+commit e493c1467bbaebfbaf2a9a6b1da3398b76232ce5
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-14 20:22:36 +0200
+
+    remove CVS $Id line and static version number
+
+commit caea065f12f3d358948cd0ca760ebd7c27cb6c80
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-14 20:08:06 +0200
+
+    overhaul bigcrypt.c
+    
+    * drop unnessesary variables
+    * rename variables and define's to be more desciptive
+    * rotate pointer updates to front of loop
+    * don't copy key
+    
+    there was no point in using crypt_r() here, we return our result in a static
+    buffer ourselves
+
+commit 495461432ca4034d49ee37cb398c6bd253d6f66d
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-11 19:34:44 +0200
+
+    md5.c: fix compiler warnings
+
+commit be53f76279d158aa3e5fb2960f9ae4da52201857
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-11 01:43:50 +0200
+
+    replace self-defined uint32 with uint32_t from stdint.h
+    
+    unsigned int is not guaranteed to have 32 bits
+
+commit ce9367b3202477b3cc914cabfe0cb2a856f3a51d
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-10 21:30:05 +0200
+
+    major overhaul
+    
+    * merge fgetpwnam into pam_sm_authenticate
+    * handle empty password field
+    * fix a fd and memory leak if pwdfile opening succeeds but locking fails
+    * use crypt_r (enabled via USE_CRYPT_R)
+    * rely on crypt() to handle newer crypt variants (including "good" md5 crypt)
+    * make bigcrypt and broken md5 crypt optional
+    * add some const's
+
+commit 88dd2b1a22cd06fc401a8ddadd41114cebe159d5
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-05-10 21:27:56 +0200
+
+    include proper headers for crypt()
+    
+    this also prepares for crypt_r()
+
+commit 138c589dd4cdf68659bfa643e5659fa1200f6081
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-29 13:06:26 +0200
+
+    rework pwdfile reading
+    
+    * drop rewind(), we read the file just once
+    * use getline() to get rid of the fixed-size buffer
+    * let strsep() also handle the newline
+    * stop at the first line containing the user instead of using the last
+
+commit 0437f4656f1d5a541b4ab951c457fae19f8deee4
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-28 17:15:15 +0200
+
+    use pam_get_authtok
+    
+    this also gets it right with use_first_pass
+    also use the default prompt for the username
+
+commit 86c95423b2908869ee42f9f40896a0bb0b773cf4
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-27 23:55:20 +0200
+
+    rework argument parsing
+    
+    * don't copy pwdfile argument, we don't need to modify it
+    * replace sizeof() with strlen() as that is easier to understand and the
+      compiler can also optimize it away
+    * expand DEFINE's so we can get rid of the comments
+
+commit 64707e82165bb32db5763b38bf550b538bcd4eec
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-27 18:07:22 +0200
+
+    make Brokencrypt_md5 also broken on little-endian
+    
+    otherwise broken hashes from big-endian systems won't work
+    also remove ASM_MD5 #ifndef's, we don't have assembler code here
+
+commit 629c03d7775e1f4b5c0fdee358c6773f70e91961
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-26 12:57:56 +0200
+
+    add debug module option and use pam_syslog
+    
+    also:
+    * remove some unnessesary comments
+    * add vim settings for unusual indentation
+
+commit fbce1a480fda4c97b21c87fb39096d23db6eedfb
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-25 14:27:07 +0200
+
+    apply visibility patch by Peter Palfrader
+
+commit 0148de59cdcea4013d694fc04db3174ce06c60b1
+Author: Timo Weingärtner <timo@tiwe.de>
+Date:   2013-04-25 14:22:49 +0200
+
+    rework Makefile for standalone building
+    
+    if this is ever integrated into pam it will be autotools anyways
+    use ?= and += to better work with distribution's build systems
+
+commit 5dbeed06ae0b0f168158920c59dcfb0cc822dee6
+Author: Charl Botha <cpbotha@cpbotha.net>
+Date:   2009-08-16 19:57:51 +0000
+
+    Added note about contrib directory.
+
+=====================================
+old (pre-git) changelog:
 
 0.99 : Sat Dec 20 20:30:37 CET 2003
 
