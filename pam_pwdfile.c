@@ -1,11 +1,11 @@
-/* pam_pwdfile.c copyright 1999-2003 by Charl P. Botha <cpbotha@ieee.org>
- *
+/* 
  * pam authentication module that can be pointed at any username/crypted
  * text file so that pam using application can use an alternate set of
  * passwords than specified in system password database
  * 
- * Copyright (c) Charl P. Botha, 1999-2003. All rights reserved
- *
+ * Copyright (c) 1999-2003 Charl P. Botha <cpbotha@cpbotha.net>
+ * Copyright (c) 2012-2013 Timo Weingärtner <timo@tiwe.de>
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -19,8 +19,8 @@
  *    products derived from this software without specific prior
  *    written permission.
  * 
- * ALTERNATIVELY, this product may be distributed under the terms of
- * the GNU Public License, in which case the provisions of the GPL are
+ * ALTERNATIVELY, this product may be distributed under the terms of the
+ * GNU General Public License, in which case the provisions of the GPL are
  * required INSTEAD OF the above restrictions.  (This clause is
  * necessary due to a potential bad interaction between the GPL and
  * the restrictions contained in a BSD-style copyright.)
@@ -50,7 +50,6 @@
 #endif
 #endif
 
-#include <features.h>
 #include <syslog.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -202,10 +201,11 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
     
 #ifdef USE_CRYPT_R
     crypt_buf.initialized = 0;
-    if (!(crypted_password = crypt_r(password, stored_crypted_password, &crypt_buf))) {
+    if (!(crypted_password = crypt_r(password, stored_crypted_password, &crypt_buf)))
 #else
-    if (!(crypted_password = crypt(password, stored_crypted_password))) {
+    if (!(crypted_password = crypt(password, stored_crypted_password)))
 #endif
+    {
 	pam_syslog(pamh, LOG_ERR, "crypt() failed");
 	free(linebuf);
 	return PAM_AUTH_ERR;
