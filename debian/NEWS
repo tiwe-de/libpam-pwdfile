@@ -1,0 +1,7 @@
+libpam-pwdfile (1.0-1) unstable; urgency=low
+
+  Support for some legacy crypt types (bigcrypt and broken md5_crypt) are
+  now disabled by default for the sake of thread-safety. See README for
+  information on wether you need to enable them and how.
+
+ -- Timo Weingärtner <timo@tiwe.de>  Sun, 29 Sep 2013 19:45:48 +0200
