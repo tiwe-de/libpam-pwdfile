@@ -1,9 +1,17 @@
-libpam-pwdfile (0.100-1) unstable; urgency=low
+libpam-pwdfile (1.0-1) unstable; urgency=low
+
+  * New upstream release.
+    - add debian/NEWS for legacy_crypt
+  * update debian/copright, convert to DEP5
+
+ -- Timo Weingärtner <timo@tiwe.de>  Sun, 29 Sep 2013 19:54:37 +0200
+
+libpam-pwdfile (0.100-1) UNRELEASED; urgency=low
 
   * add gbp.conf
   * drop stuff in debian/ not needed anymore:
     - patches
-    - Makefile
+    - Makefile (Closes: #724202)
     - README.Debian
     - source.lintian-overrides
   * add watch file
@@ -126,7 +134,3 @@ libpam-pwdfile (0.1-1) unstable; urgency=low
   * Initial Release.
 
  -- Michael-John Turner <mj@debian.org>  Tue,  7 Dec 1999 12:02:43 +0200
-
-Local variables:
-mode: debian-changelog
-End:
