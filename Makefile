@@ -2,7 +2,7 @@ PAM_LIB_DIR ?= /lib/security
 INSTALL ?= install
 CFLAGS ?= -O2 -g -Wall -Wformat-security
 
-CPPFLAGS += -DUSE_CRYPT_R
+CPPFLAGS += -DUSE_CRYPT_R -D_FILE_OFFSET_BITS=64
 CFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS += -Wl,-x -shared
 
