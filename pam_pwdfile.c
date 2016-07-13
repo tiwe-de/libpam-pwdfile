@@ -42,7 +42,7 @@
 #define _GNU_SOURCE
 #include <crypt.h>
 #else
-#ifndef _XOPEN_SOURCE
+#if !defined(_XOPEN_SOURCE) && !defined(_BSD_SOURCE)
 #define _XOPEN_SOURCE 700
 #endif
 #ifndef _BSD_SOURCE
