@@ -63,10 +63,24 @@
 #include <syslog.h>
 
 #include <security/pam_appl.h>
+#if defined(HAVE_SECURITY_PAM_EXT_H)
+# include <security/pam_ext.h>
+#elif defined(HAVE_PAM_PAM_EXT_H)
+# include <pam/pam_ext.h>
+#endif
+
+#ifndef HAVE_PAM_VSYSLOG
+#define pam_vsyslog(pamh, priority, fmt, ...) \
+    vsyslog((priority), (fmt), ##__VA_ARGS__)
+#endif /* HAVE_PAM_VSYSLOG */
+
+#ifndef HAVE_PAM_SYSLOG
+#define pam_syslog(pamh, priority, fmt, ...) \
+    syslog((priority), (fmt), ##__VA_ARGS__)
+#endif /* HAVE_PAM_VSYSLOG */
 
 #define PAM_SM_AUTH
 #include <security/pam_modules.h>
-#include <security/pam_ext.h>
 
 #include "md5.h"
 #include "bigcrypt.h"
