@@ -17,7 +17,12 @@
  */
 
 #include <string.h>
+#if defined(__FreeBSD__)
+#include <sys/endian.h>
+#define bswap_32 bswap32
+#else
 #include <byteswap.h>
+#endif
 #include "md5.h"
 
 #ifndef HIGHFIRST
